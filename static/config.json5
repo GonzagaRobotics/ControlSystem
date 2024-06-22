@@ -1,0 +1,30 @@
+{
+	fakeConnect: true,
+	window: {
+		panes: [{ id: 'test', name: 'Test' }],
+		tabs: [
+			{
+				id: 'first',
+				name: 'First',
+				panes: [
+					{
+						id: 'test',
+						position: { x: 0, y: 0 },
+						size: { x: 1, y: 1 }
+					}
+				]
+			},
+			{
+				id: 'second',
+				name: 'Second',
+				panes: [
+					{
+						id: 'test',
+						position: { x: 1, y: 0 },
+						size: { x: 1, y: 1 }
+					}
+				]
+			}
+		]
+	}
+}
