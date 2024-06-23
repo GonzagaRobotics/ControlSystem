@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { Core } from '$lib/core/core';
 	import { AppBar, Tab, TabGroup } from '@skeletonlabs/skeleton';
-	import { writable } from 'svelte/store';
+	import { type Writable } from 'svelte/store';
 	import Connection from './Connection.svelte';
 	import { getContext } from 'svelte';
 
-	const core = getContext<Core>('core');
-	const config = core.config;
+	export let selectedTab: Writable<string>;
 
-	const currentTab = writable(config.window.tabs.at(0)?.id ?? '');
+	const core = getContext<Core>('core');
 </script>
 
 <AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
@@ -17,8 +16,8 @@
 	</svelte:fragment>
 
 	<TabGroup>
-		{#each config.window.tabs as tab}
-			<Tab bind:group={$currentTab} name={tab.id} value={tab.id}>{tab.name}</Tab>
+		{#each core.config.window.tabs as tab}
+			<Tab bind:group={$selectedTab} name={tab.id} value={tab.id}>{tab.name}</Tab>
 		{/each}
 	</TabGroup>
 
