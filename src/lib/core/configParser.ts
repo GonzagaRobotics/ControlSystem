@@ -3,10 +3,6 @@ import JSON5 from 'json5';
 export type Config = {
 	roslibUrl: string;
 	fakeConnect: boolean;
-	window: WindowConfig;
-};
-
-export type WindowConfig = {
 	panes: {
 		id: string;
 		name: string;

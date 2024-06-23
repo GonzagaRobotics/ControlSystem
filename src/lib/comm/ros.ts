@@ -5,8 +5,11 @@ import type { Writable } from 'svelte/store';
 
 export class Ros {
 	readonly internal: ROSLIB.Ros | null = null;
+	private readonly _state: Writable<State>;
 
 	constructor(config: Config, state: Writable<State>) {
+		this._state = state;
+
 		if (config.fakeConnect) {
 			state.update((s) => ({ ...s, connection: 'connected' }));
 			return;
@@ -27,5 +30,13 @@ export class Ros {
 		this.internal.on('close', () => {
 			state.update((s) => ({ ...s, connection: 'disconnected' }));
 		});
+	}
+
+	disconnect() {
+		if (this.internal) {
+			this.internal.close();
+		} else {
+			this._state.update((s) => ({ ...s, connection: 'disconnected' }));
+		}
 	}
 }

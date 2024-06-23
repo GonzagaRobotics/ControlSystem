@@ -10,7 +10,7 @@
 
 	const core = getContext<Core>('core');
 
-	$: _name = core.config.window.panes.find((pane) => pane.id === id)?.name ?? 'Unknown';
+	$: _name = core.config.panes.find((pane) => pane.id === id)?.name ?? 'Unknown';
 	$: _loadingClasses = loading ? 'placeholder animate-pulse rounded-none' : '';
 	$: _grid_col_classes = `${start.x + 1} / ${start.x + size.x + 1}`;
 	$: _grid_row_classes = `${start.y + 1} / ${start.y + size.y + 1}`;

@@ -1,39 +1,37 @@
 {
 	roslibUrl: 'localhost:9090',
 	fakeConnect: true,
-	window: {
-		panes: [
-			{ id: 'test1', name: 'Test 1' },
-			{ id: 'test2', name: 'Test 2' }
-		],
-		tabs: [
-			{
-				id: 'first',
-				name: 'First',
-				panes: [
-					{
-						id: 'test1',
-						position: { x: 0, y: 0 },
-						size: { x: 1, y: 1 }
-					}
-				]
-			},
-			{
-				id: 'second',
-				name: 'Second',
-				panes: [
-					{
-						id: 'test1',
-						position: { x: 0, y: 1 },
-						size: { x: 1, y: 1 }
-					},
-					{
-						id: 'test2',
-						position: { x: 1, y: 0 },
-						size: { x: 1, y: 1 }
-					}
-				]
-			}
-		]
-	}
+	panes: [
+		{ id: 'test1', name: 'Test 1' },
+		{ id: 'test2', name: 'Test 2' }
+	],
+	tabs: [
+		{
+			id: 'first',
+			name: 'First',
+			panes: [
+				{
+					id: 'test1',
+					position: { x: 0, y: 0 },
+					size: { x: 1, y: 1 }
+				}
+			]
+		},
+		{
+			id: 'second',
+			name: 'Second',
+			panes: [
+				{
+					id: 'test1',
+					position: { x: 0, y: 1 },
+					size: { x: 1, y: 1 }
+				},
+				{
+					id: 'test2',
+					position: { x: 1, y: 0 },
+					size: { x: 1, y: 1 }
+				}
+			]
+		}
+	]
 }

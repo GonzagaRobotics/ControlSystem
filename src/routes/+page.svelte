@@ -5,14 +5,21 @@
 	import type { PageData } from './$types';
 	import { writable } from 'svelte/store';
 	import { paneList } from '$lib/components/panes/paneList';
+	import { beforeNavigate } from '$app/navigation';
 
 	export let data: PageData;
 
 	const core = new Core(data.config);
 	setContext('core', core);
 
-	const selectedTab = writable(core.config.window.tabs.at(0)?.id ?? '');
-	$: selectedTabObj = core.config.window.tabs.find((tab) => tab.id === $selectedTab);
+	const selectedTab = writable(core.config.tabs.at(0)?.id ?? '');
+	$: selectedTabObj = core.config.tabs.find((tab) => tab.id === $selectedTab);
+
+	beforeNavigate((navigation) => {
+		if (navigation.type == 'leave') {
+			core.disconnect();
+		}
+	});
 
 	function getComponent(paneId: string) {
 		if (!(paneId in paneList)) {

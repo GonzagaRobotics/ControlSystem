@@ -18,7 +18,11 @@ export class Core {
 		this.ros = new Ros(this.config, this._state);
 	}
 
-	public get state(): Readable<State> {
+	get state(): Readable<State> {
 		return this._state;
+	}
+
+	disconnect() {
+		this.ros.disconnect();
 	}
 }

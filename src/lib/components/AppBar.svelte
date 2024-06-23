@@ -16,7 +16,7 @@
 	</svelte:fragment>
 
 	<TabGroup>
-		{#each core.config.window.tabs as tab}
+		{#each core.config.tabs as tab}
 			<Tab bind:group={$selectedTab} name={tab.id} value={tab.id}>{tab.name}</Tab>
 		{/each}
 	</TabGroup>
