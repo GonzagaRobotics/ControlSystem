@@ -12,9 +12,8 @@ Other browsers are not supported.
 
 1. Make sure Node.js and npm are installed.
 2. Run `npm install` to install dependencies.
-3. Duplicate `.env.example`, rename it to `.env` and change the values to match your setup.
-4. Run `npm run dev` to start the dev server.
-5. Navigate to `http://localhost:5173/`
+3. Run `npm run dev` to start the dev server.
+4. Navigate to `http://localhost:5173/`
 
 ## Building
 
