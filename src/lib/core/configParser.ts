@@ -1,6 +1,7 @@
 import JSON5 from 'json5';
 
 export type Config = {
+	roslibUrl: string;
 	fakeConnect: boolean;
 	window: WindowConfig;
 };
@@ -22,14 +23,8 @@ export type WindowConfig = {
 };
 
 export class ConfigParser {
-	static async parseConfig(): Promise<Config> {
-		const response = await fetch('config.json5');
-
-		if (!response.ok) {
-			throw new Error('Failed to fetch config file: ' + response.statusText);
-		}
-
-		const raw = await JSON5.parse(await response.text());
+	static parseConfig(configText: string): Config {
+		const raw = JSON5.parse(configText);
 
 		// TODO: Validate the config file
 

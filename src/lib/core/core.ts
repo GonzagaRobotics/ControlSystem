@@ -1,5 +1,6 @@
 import { writable, type Readable, type Writable } from 'svelte/store';
-import { ConfigParser, type Config } from './configParser';
+import { type Config } from './configParser';
+import { Ros } from '$lib/comm/ros';
 
 export type State = {
 	connection: 'disconnected' | 'connecting' | 'connected';
@@ -7,20 +8,14 @@ export type State = {
 };
 
 export class Core {
-	private readonly _config: Writable<Config | null>;
+	readonly config: Config;
+	readonly ros: Ros;
 	private readonly _state: Writable<State>;
 
-	constructor() {
-		this._config = writable(null);
+	constructor(config: Config) {
+		this.config = config;
 		this._state = writable({ connection: 'disconnected' });
-	}
-
-	async init() {
-		this._config.set(await ConfigParser.parseConfig());
-	}
-
-	public get config(): Readable<Config | null> {
-		return this._config;
+		this.ros = new Ros(this.config, this._state);
 	}
 
 	public get state(): Readable<State> {

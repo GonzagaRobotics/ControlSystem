@@ -1,14 +1,13 @@
 <script lang="ts">
 	import AppBar from '$lib/components/AppBar.svelte';
 	import { Core } from '$lib/core/core';
-	import { onMount, setContext } from 'svelte';
+	import { setContext } from 'svelte';
+	import type { PageData } from './$types';
 
-	const core = new Core();
+	export let data: PageData;
+
+	const core = new Core(data.config);
 	setContext('core', core);
-
-	onMount(async () => {
-		await core.init();
-	});
 </script>
 
 <main class="w-[100vw] h-[100vh]">

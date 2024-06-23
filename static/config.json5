@@ -1,4 +1,5 @@
 {
+	roslibUrl: 'localhost:9090',
 	fakeConnect: true,
 	window: {
 		panes: [{ id: 'test', name: 'Test' }],
