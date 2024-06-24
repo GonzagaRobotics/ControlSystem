@@ -28,7 +28,13 @@
 					position: { x: 0, y: 0 },
 					size: { x: 1, y: 1 }
 				}
-			]
+			],
+			/*
+			 * Each tab can have a list of string attributes that are can be
+			 * used by panes to change their behavior. For example, a pane could,
+			 * show different data or have different controls based on an attribute.
+			 */
+			attributes: []
 		}
 	]
 }

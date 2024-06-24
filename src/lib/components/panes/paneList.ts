@@ -1,8 +1,9 @@
-import Test from './Test.svelte';
+import Camera from './Camera.svelte';
+import Motors from './Motors.svelte';
 import Unknown from './Unknown.svelte';
 
 export const paneList = {
 	unknown: Unknown,
-	test1: Test,
-	test2: Test
+	camera: Camera,
+	motors: Motors
 };

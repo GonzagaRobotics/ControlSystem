@@ -7,5 +7,5 @@
 </script>
 
 <Pane {id} {start} {size}>
-	<svelte:fragment slot="main">Hello!</svelte:fragment>
+	<svelte:fragment slot="main"></svelte:fragment>
 </Pane>

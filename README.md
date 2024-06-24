@@ -8,6 +8,11 @@ Development and testing is done on Ubuntu Chromium. Windows and Mac should work 
 
 Other browsers are not supported.
 
+## Configuration
+
+The configuration file is located at `static/config.json5`.
+For an example and explanation of the configuration file, see `static/config.example.json5`.
+
 ## Development Quick Start
 
 1. Make sure Node.js and npm are installed.

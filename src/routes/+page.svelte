@@ -3,7 +3,7 @@
 	import { Core } from '$lib/core/core';
 	import { setContext } from 'svelte';
 	import type { PageData } from './$types';
-	import { writable } from 'svelte/store';
+	import { derived, writable } from 'svelte/store';
 	import { paneList } from '$lib/components/panes/paneList';
 	import { beforeNavigate } from '$app/navigation';
 
@@ -14,6 +14,11 @@
 
 	const selectedTab = writable(core.config.tabs.at(0)?.id ?? '');
 	$: selectedTabObj = core.config.tabs.find((tab) => tab.id === $selectedTab);
+
+	const currentAttributes = derived(selectedTab, ($selectedTab) => {
+		return core.config.tabs.find((tab) => tab.id === $selectedTab)?.attributes ?? [];
+	});
+	setContext('currentAttributes', currentAttributes);
 
 	beforeNavigate((navigation) => {
 		if (navigation.type == 'leave') {

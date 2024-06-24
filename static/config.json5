@@ -1,37 +1,31 @@
 {
 	roslibUrl: 'localhost:9090',
 	fakeConnect: true,
-	panes: [
-		{ id: 'test1', name: 'Test 1' },
-		{ id: 'test2', name: 'Test 2' }
-	],
+	panes: [{ id: 'camera', name: 'Camera' }],
 	tabs: [
 		{
-			id: 'first',
-			name: 'First',
+			id: 'drive',
+			name: 'Drive',
 			panes: [
 				{
-					id: 'test1',
+					id: 'camera',
 					position: { x: 0, y: 0 },
-					size: { x: 1, y: 1 }
+					size: { x: 2, y: 1 }
 				}
-			]
+			],
+			attributes: []
 		},
 		{
-			id: 'second',
-			name: 'Second',
+			id: 'navigate',
+			name: 'Navigate',
 			panes: [
 				{
-					id: 'test1',
-					position: { x: 0, y: 1 },
-					size: { x: 1, y: 1 }
-				},
-				{
-					id: 'test2',
-					position: { x: 1, y: 0 },
-					size: { x: 1, y: 1 }
+					id: 'camera',
+					position: { x: 0, y: 0 },
+					size: { x: 2, y: 1 }
 				}
-			]
+			],
+			attributes: ['readonly_motors']
 		}
 	]
 }
