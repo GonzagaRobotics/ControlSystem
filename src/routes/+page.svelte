@@ -15,10 +15,10 @@
 	const selectedTab = writable(core.config.tabs.at(0)?.id ?? '');
 	$: selectedTabObj = core.config.tabs.find((tab) => tab.id === $selectedTab);
 
-	const currentAttributes = derived(selectedTab, ($selectedTab) => {
+	const tabAttributes = derived(selectedTab, ($selectedTab) => {
 		return core.config.tabs.find((tab) => tab.id === $selectedTab)?.attributes ?? [];
 	});
-	setContext('currentAttributes', currentAttributes);
+	setContext('tabAttributes', tabAttributes);
 
 	beforeNavigate((navigation) => {
 		if (navigation.type == 'leave') {
