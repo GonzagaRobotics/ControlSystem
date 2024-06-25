@@ -1,7 +1,7 @@
 <script lang="ts">
 	import AppBar from '$lib/components/AppBar.svelte';
 	import { Core } from '$lib/core/core';
-	import { setContext } from 'svelte';
+	import { setContext, SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 	import { derived, writable } from 'svelte/store';
 	import { paneList } from '$lib/components/panes/paneList';
@@ -20,9 +20,18 @@
 	});
 	setContext('tabAttributes', tabAttributes);
 
+	const paneComponents = new Array<SvelteComponent>(4 * 2);
+
 	beforeNavigate((navigation) => {
 		if (navigation.type == 'leave') {
-			core.disconnect();
+			// To prevent any issues with the components not being destroyed properly,
+			// we manually destroy them here so we can be sure any cleanup code is run
+			// before the core is disposed.
+			for (const component of paneComponents) {
+				component?.$destroy();
+			}
+
+			core.dispose();
 		}
 	});
 
@@ -47,6 +56,7 @@
 				id={pane.id}
 				start={pane.position}
 				size={pane.size}
+				bind:this={paneComponents[pane.position.y * 4 + pane.position.x]}
 			/>
 		{/each}
 	</div>

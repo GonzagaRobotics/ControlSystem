@@ -2,12 +2,24 @@ import { writable, type Readable, type Writable } from 'svelte/store';
 import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros';
 
+/**
+ * An object that can be disposed of when it is no longer needed.
+ */
+export interface Disposable {
+	/**
+	 * Disposes of the object, releasing any resources it holds.
+	 * This method should be idempotent, but the caller should not use the
+	 * object after calling this method.
+	 */
+	dispose(): void;
+}
+
 export type State = {
 	connection: 'disconnected' | 'connecting' | 'connected';
 	latency?: number;
 };
 
-export class Core {
+export class Core implements Disposable {
 	readonly config: Config;
 	readonly ros: Ros;
 	private readonly _state: Writable<State>;
@@ -22,7 +34,9 @@ export class Core {
 		return this._state;
 	}
 
-	disconnect() {
-		this.ros.disconnect();
+	dispose() {
+		console.log('Disposing Core...');
+
+		this.ros.dispose();
 	}
 }

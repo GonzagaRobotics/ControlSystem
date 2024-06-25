@@ -1,9 +1,9 @@
 import type { Config } from '$lib/core/configParser';
-import type { State } from '$lib/core/core';
+import type { Disposable, State } from '$lib/core/core';
 import * as ROSLIB from 'roslib';
 import type { Writable } from 'svelte/store';
 
-export class Ros {
+export class Ros implements Disposable {
 	readonly internal: ROSLIB.Ros | null = null;
 	private readonly _state: Writable<State>;
 
@@ -32,7 +32,9 @@ export class Ros {
 		});
 	}
 
-	disconnect() {
+	dispose() {
+		console.log('Disposing ROS...');
+
 		if (this.internal) {
 			this.internal.close();
 		} else {

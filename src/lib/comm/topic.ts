@@ -1,6 +1,7 @@
 import * as ROSLIB from 'roslib';
 import type { Ros } from './ros';
-import { writable, type Readable } from 'svelte/store';
+import { writable, type Readable, type Writable } from 'svelte/store';
+import type { Disposable } from '$lib/core/core';
 
 /**
  * Recursively transforms a ROS message into a standard object.
@@ -44,32 +45,43 @@ export function standardTransform<T>(message: ROSLIB.Message): T {
 	return result as T;
 }
 
-export class Topic<T> {
-	readonly internal: ROSLIB.Topic | null = null;
+export class Topic<T> implements Disposable {
+	private _internal: ROSLIB.Topic | null = null;
+	private readonly _lastSubMsg: Writable<T | undefined>;
 
-	constructor(ros: Ros, topicName: string, messageType: string) {
-		if (ros.internal === null) {
-			return;
+	constructor(ros: Ros, topicName: string, messageType: string, transform = standardTransform) {
+		if (ros.internal) {
+			this._internal = new ROSLIB.Topic({
+				ros: ros.internal,
+				name: topicName,
+				messageType: messageType
+			});
 		}
 
-		this.internal = new ROSLIB.Topic({
-			ros: ros.internal,
-			name: topicName,
-			messageType: messageType
+		this._lastSubMsg = writable(undefined, (set) => {
+			this._internal?.subscribe((message) => {
+				set(transform(message));
+			});
+
+			return () => {
+				console.log('Unsubscribing from topic...');
+
+				this._internal?.unsubscribe();
+			};
 		});
 	}
 
-	subscribe(transform: (raw: ROSLIB.Message) => T = standardTransform): Readable<T | undefined> {
-		const store = writable<T | undefined>(undefined);
-
-		this.internal?.subscribe((message) => {
-			store.set(transform(message));
-		});
-
-		return store;
+	subscribe(): Readable<T | undefined> {
+		return { subscribe: this._lastSubMsg.subscribe };
 	}
 
 	publish(message: T) {
-		this.internal?.publish(new ROSLIB.Message(message));
+		this._internal?.publish(new ROSLIB.Message(message));
+	}
+
+	dispose() {
+		console.log('Disposing Topic...');
+
+		this._internal = null;
 	}
 }
