@@ -32,6 +32,6 @@
 	const motorStatus = motorsStatusTopic.subscribe();
 </script>
 
-<Pane {id} {start} {size} loading={$motorStatus == undefined}>
+<Pane {id} {start} {size} loading={$motorStatus == undefined && !core.config.fakeConnect}>
 	<svelte:fragment slot="main"></svelte:fragment>
 </Pane>

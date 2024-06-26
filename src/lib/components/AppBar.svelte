@@ -4,6 +4,7 @@
 	import { type Writable } from 'svelte/store';
 	import Connection from './Connection.svelte';
 	import { getContext } from 'svelte';
+	import Gamepad from './Gamepad.svelte';
 
 	export let selectedTab: Writable<string>;
 
@@ -23,5 +24,6 @@
 
 	<svelte:fragment slot="trail">
 		<Connection />
+		<Gamepad />
 	</svelte:fragment>
 </AppBar>

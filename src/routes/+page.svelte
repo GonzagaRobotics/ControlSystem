@@ -1,7 +1,7 @@
 <script lang="ts">
 	import AppBar from '$lib/components/AppBar.svelte';
 	import { Core } from '$lib/core/core';
-	import { setContext, SvelteComponent } from 'svelte';
+	import { onMount, setContext, SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 	import { derived, writable } from 'svelte/store';
 	import { paneList } from '$lib/components/panes/paneList';
@@ -33,6 +33,25 @@
 
 			core.dispose();
 		}
+	});
+
+	let lastTickTimestamp: number | undefined;
+
+	function tick(timestamp: number) {
+		if (lastTickTimestamp == undefined) {
+			lastTickTimestamp = timestamp;
+		}
+
+		const delta = timestamp - lastTickTimestamp;
+
+		core.tick(delta);
+
+		lastTickTimestamp = timestamp;
+		requestAnimationFrame(tick);
+	}
+
+	onMount(() => {
+		requestAnimationFrame(tick);
 	});
 
 	function getComponent(paneId: string) {
