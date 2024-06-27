@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Core } from '$lib/core/core';
-	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { getContext } from 'svelte';
 	import { backOut } from 'svelte/easing';
 	import { scale } from 'svelte/transition';
@@ -10,16 +9,7 @@
 	const core = getContext<Core>('core');
 	const gamepadConnected = core.input.gamepadConnected;
 
-	const toastStore = getToastStore();
-
-	gamepadConnected.subscribe((connected) => {
-		toastStore.trigger({
-			message: connected ? 'Gamepad Connected' : 'Gamepad Disconnected',
-			timeout: 2000,
-			background: 'variant-filled-secondary',
-			hideDismiss: true
-		});
-	});
+	$: core.sendToast('info', $gamepadConnected ? 'Gamepad Connected' : 'Gamepad Disconnected');
 </script>
 
 {#key $gamepadConnected}

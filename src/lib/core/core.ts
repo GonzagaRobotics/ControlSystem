@@ -2,6 +2,7 @@ import { writable, type Readable, type Writable } from 'svelte/store';
 import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros';
 import { InputSystem } from '$lib/input/inputSystem';
+import type { ToastStore } from '@skeletonlabs/skeleton';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -33,21 +34,48 @@ export type State = {
 	latency?: number;
 };
 
+export type ToastType = 'info' | 'success' | 'warning' | 'error';
+
 export class Core implements Disposable, Tickable {
 	readonly config: Config;
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	private readonly _state: Writable<State>;
+	private readonly _toastStore: ToastStore;
 
-	constructor(config: Config) {
+	constructor(config: Config, toastStore: ToastStore) {
 		this.config = config;
+		this._toastStore = toastStore;
 		this.input = new InputSystem();
 		this._state = writable({ connection: 'disconnected' });
-		this.ros = new Ros(this.config, this._state);
+		this.ros = new Ros(this.config, this, this._state);
 	}
 
 	get state(): Readable<State> {
 		return this._state;
+	}
+
+	sendToast(type: ToastType, message: string) {
+		function calculateDuration(type: ToastType) {
+			switch (type) {
+				case 'info':
+					return 2000;
+				case 'success':
+					return 2500;
+				case 'warning':
+					return 3000;
+				case 'error':
+					return undefined;
+			}
+		}
+
+		this._toastStore.trigger({
+			message,
+			timeout: calculateDuration(type),
+			classes: `variant-filled-${type === 'info' ? 'secondary' : type}`,
+			hideDismiss: type != 'error',
+			autohide: type != 'error'
+		});
 	}
 
 	tick(deltaTime: number): void {
@@ -55,8 +83,8 @@ export class Core implements Disposable, Tickable {
 	}
 
 	dispose() {
-		console.log('Disposing Core...');
-
 		this.ros.dispose();
+
+		console.log('Core disposed');
 	}
 }

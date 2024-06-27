@@ -6,10 +6,11 @@
 	import { derived, writable } from 'svelte/store';
 	import { paneList } from '$lib/components/panes/paneList';
 	import { beforeNavigate } from '$app/navigation';
+	import { getToastStore } from '@skeletonlabs/skeleton';
 
 	export let data: PageData;
 
-	const core = new Core(data.config);
+	const core = new Core(data.config, getToastStore());
 	setContext('core', core);
 
 	const selectedTab = writable(core.config.tabs.at(0)?.id ?? '');
