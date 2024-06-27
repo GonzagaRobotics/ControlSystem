@@ -80,8 +80,6 @@ export class Topic<T> implements Disposable {
 	}
 
 	dispose() {
-		console.log('Disposing Topic...');
-
 		this._internal = null;
 	}
 }

@@ -1,6 +1,12 @@
 {
 	roslibUrl: 'localhost:9090',
 	fakeConnect: true,
+	heartbeat: {
+		heartbeatInterval: 1000,
+		heartbeatCheckInterval: 500,
+		heartbeatTimeout: 5000,
+		heartbeatTimeoutLimit: 3
+	},
 	panes: [
 		{ id: 'camera', name: 'Camera' },
 		{ id: 'motors', name: 'Motors' }

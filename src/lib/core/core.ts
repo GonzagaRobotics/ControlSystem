@@ -3,6 +3,7 @@ import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros';
 import { InputSystem } from '$lib/input/inputSystem';
 import type { ToastStore } from '@skeletonlabs/skeleton';
+import { HeartbeatManager } from '$lib/comm/heartbeatManager';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -36,10 +37,14 @@ export type State = {
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
 
+export const CONTROL_SOURCE_NAME = 'control';
+export const ROVER_SOURCE_NAME = 'rover';
+
 export class Core implements Disposable, Tickable {
 	readonly config: Config;
 	readonly ros: Ros;
 	readonly input: InputSystem;
+	private readonly _heartbeatManager: HeartbeatManager;
 	private readonly _state: Writable<State>;
 	private readonly _toastStore: ToastStore;
 
@@ -49,6 +54,7 @@ export class Core implements Disposable, Tickable {
 		this.input = new InputSystem();
 		this._state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this.config, this, this._state);
+		this._heartbeatManager = new HeartbeatManager(this);
 	}
 
 	get state(): Readable<State> {

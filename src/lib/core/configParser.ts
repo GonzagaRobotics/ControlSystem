@@ -1,8 +1,16 @@
 import JSON5 from 'json5';
 
+export type HeartbeatConfig = {
+	heartbeatInterval: number;
+	heartbeatCheckInterval: number;
+	heartbeatTimeout: number;
+	heartbeatTimeoutLimit: number;
+};
+
 export type Config = {
 	roslibUrl: string;
 	fakeConnect: boolean;
+	heartbeat: HeartbeatConfig;
 	panes: {
 		id: string;
 		name: string;
