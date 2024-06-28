@@ -89,8 +89,6 @@ export class Core implements Disposable, Tickable {
 	}
 
 	dispose() {
-		this.ros.dispose();
-
 		console.log('Core disposed');
 	}
 }
