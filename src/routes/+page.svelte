@@ -70,14 +70,24 @@
 	<AppBar {selectedTab} />
 
 	<div class="w-full h-full grid grid-cols-4 grid-rows-2">
-		{#each selectedTabObj?.panes ?? [] as pane (pane.id)}
-			<svelte:component
-				this={getComponent(pane.id)}
-				id={pane.id}
-				start={pane.position}
-				size={pane.size}
-				bind:this={paneComponents[pane.position.y * 4 + pane.position.x]}
-			/>
-		{/each}
+		{#await core.init()}
+			<div class="col-span-4 row-span-2 flex justify-center items-center">
+				<h1 class="h1">Conecting to Rover...</h1>
+			</div>
+		{:then}
+			{#each selectedTabObj?.panes ?? [] as pane (pane.id)}
+				<svelte:component
+					this={getComponent(pane.id)}
+					id={pane.id}
+					start={pane.position}
+					size={pane.size}
+					bind:this={paneComponents[pane.position.y * 4 + pane.position.x]}
+				/>
+			{/each}
+		{:catch error}
+			<div class="col-span-4 row-span-2 flex justify-center items-center">
+				<h1 class="h1">{error}</h1>
+			</div>
+		{/await}
 	</div>
 </main>

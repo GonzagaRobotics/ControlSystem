@@ -1,36 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Config } from '$lib/core/configParser';
-import type { Core, State } from '$lib/core/core';
+import type { Core } from '$lib/core/core';
 import * as ROSLIB from 'roslib';
-import type { Writable } from 'svelte/store';
 
 export class Ros {
 	readonly internal: ROSLIB.Ros | null = null;
 
-	constructor(config: Config, core: Core, state: Writable<State>) {
-		if (config.fakeConnect) {
-			state.update((s) => ({ ...s, connection: 'connected' }));
-			core.sendToast('success', 'Fake connected to ROS');
+	constructor(core: Core) {
+		if (core.config.fakeConnect) {
+			core.state.update((s) => ({ ...s, connection: 'roslibConnected' }));
 			return;
 		}
 
 		this.internal = new ROSLIB.Ros({
-			url: 'ws://' + config.roslibUrl
+			url: 'ws://' + core.config.roslibUrl
 		});
 
 		this.internal.on('connection', () => {
-			state.update((s) => ({ ...s, connection: 'connected' }));
-			core.sendToast('success', 'Connected to ROS');
+			console.log('Connected to roslib');
+
+			core.state.update((s) => ({ ...s, connection: 'roslibConnected' }));
 		});
 
 		this.internal.on('error', (error) => {
+			core.state.update((s) => ({ ...s, connection: 'failed' }));
 			core.sendToast('error', 'ROSLIB error, see console');
 			console.error('ROSLIB error:', error);
 		});
 
 		this.internal.on('close', () => {
-			state.update((s) => ({ ...s, connection: 'disconnected' }));
-			core.sendToast('warning', 'Disconnected from ROS');
+			console.log('Roslib connection closed');
+
+			core.state.update((s) => {
+				if (s.connection == 'failed') {
+					return s;
+				}
+
+				return { ...s, connection: 'disconnected' };
+			});
 		});
 	}
 
