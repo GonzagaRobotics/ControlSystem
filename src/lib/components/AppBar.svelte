@@ -5,6 +5,7 @@
 	import Connection from './Connection.svelte';
 	import { getContext } from 'svelte';
 	import Gamepad from './Gamepad.svelte';
+	import Latency from './Latency.svelte';
 
 	export let selectedTab: Writable<string>;
 
@@ -25,5 +26,6 @@
 	<svelte:fragment slot="trail">
 		<Connection />
 		<Gamepad />
+		<Latency />
 	</svelte:fragment>
 </AppBar>

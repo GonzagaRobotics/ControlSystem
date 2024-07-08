@@ -3,6 +3,7 @@ import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros';
 import { InputSystem } from '$lib/input/inputSystem';
 import type { ToastStore } from '@skeletonlabs/skeleton';
+import { HeartbeatManager } from '$lib/comm/heartbeatManager';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -44,7 +45,7 @@ export class Core implements Disposable, Tickable {
 	readonly state: Writable<State>;
 	readonly ros: Ros;
 	readonly input: InputSystem;
-	// readonly heartbeatManager: HeartbeatManager;
+	readonly heartbeatManager: HeartbeatManager;
 	private readonly _toastStore: ToastStore;
 
 	constructor(config: Config, toastStore: ToastStore) {
@@ -53,7 +54,7 @@ export class Core implements Disposable, Tickable {
 		this.input = new InputSystem();
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
-		// this.heartbeatManager = new HeartbeatManager(this);
+		this.heartbeatManager = new HeartbeatManager(this);
 	}
 
 	sendToast(type: ToastType, message: string) {
@@ -81,21 +82,27 @@ export class Core implements Disposable, Tickable {
 
 	async init() {
 		// Wait for the roslib connection to be established
-		if (get(this.state).connection == 'roslibConnected') {
-			this.state.update((s) => ({ ...s, connection: 'connected' }));
-			return;
+		if (get(this.state).connection != 'roslibConnected') {
+			await new Promise<void>((resolve, reject) => {
+				this.state.subscribe((s) => {
+					if (s.connection == 'roslibConnected') {
+						resolve();
+					} else if (s.connection == 'failed') {
+						reject('ROS connection failed');
+					}
+				});
+			});
 		}
 
-		await new Promise<void>((resolve, reject) => {
-			this.state.subscribe((s) => {
-				if (s.connection == 'roslibConnected') {
-					this.state.update((s) => ({ ...s, connection: 'connected' }));
-					resolve();
-				} else if (s.connection == 'failed') {
-					reject('ROS connection failed');
-				}
-			});
-		});
+		// Wait for the heartbeat manager to be ready
+		try {
+			await this.heartbeatManager.sendConfig();
+		} catch (error) {
+			this.state.update((s) => ({ ...s, connection: 'failed' }));
+			throw error;
+		}
+
+		this.state.update((s) => ({ ...s, connection: 'connected' }));
 	}
 
 	tick(deltaTime: number): void {
