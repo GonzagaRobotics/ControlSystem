@@ -30,6 +30,13 @@ export interface Tickable {
 	tick(deltaTime: number): void;
 }
 
+/**
+ * Testing function that waits for a specified number of milliseconds.
+ */
+export async function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export type State = {
 	connection: 'disconnected' | 'connecting' | 'roslibConnected' | 'connected' | 'failed';
 	latency?: number;

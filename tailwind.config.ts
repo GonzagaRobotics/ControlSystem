@@ -12,8 +12,22 @@ export default {
 	],
 	theme: {
 		extend: {
+			keyframes: {
+				'heartbeat-pulse': {
+					'0%': { transform: 'scale(1)' },
+					'7%': { transform: 'scale(1.13)' },
+					'10%, 12%': { transform: 'scale(1.15)' },
+					'20%': { transform: 'scale(0.93)' },
+					'23%': { transform: 'scale(0.91)' },
+					'30%': { transform: 'scale(1.03)' },
+					'37%': { transform: 'scale(1)' },
+					'42%': { transform: 'scale(0.98)' },
+					'50%': { transform: 'scale(1)' }
+				}
+			},
 			animation: {
-				'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+				'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				heartbeat: 'heartbeat-pulse 1.5s ease-in-out infinite'
 			}
 		}
 	},
