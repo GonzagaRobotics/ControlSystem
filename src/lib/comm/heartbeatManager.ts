@@ -1,4 +1,4 @@
-import { CONTROL_SOURCE_NAME, ROVER_SOURCE_NAME, type Core } from '$lib/core/core';
+import { CONTROL_SOURCE_NAME, ROVER_SOURCE_NAME, type Core, type Disposable } from '$lib/core/core';
 import { get } from 'svelte/store';
 import { Topic } from './topic';
 import { Service } from './service';
@@ -14,8 +14,9 @@ type InternalHeartbeat = {
 	timedOut: boolean;
 };
 
-export class HeartbeatManager {
-	private readonly _service: Service<HeartbeatConfig, boolean>;
+export class HeartbeatManager implements Disposable {
+	private readonly _connectService: Service<HeartbeatConfig, boolean>;
+	private readonly _disconnect: Topic<void>;
 	private readonly _topic: Topic<Heartbeat>;
 	private readonly _core: Core;
 	private _timeoutCount: number = 0;
@@ -24,7 +25,12 @@ export class HeartbeatManager {
 
 	constructor(core: Core) {
 		this._core = core;
-		this._service = new Service(core.ros, '/heartbeat_config', 'core_interfaces/HeartbeatConfig');
+		this._connectService = new Service(
+			core.ros,
+			'/heartbeat_config',
+			'core_interfaces/HeartbeatConfig'
+		);
+		this._disconnect = new Topic(core.ros, '/heartbeat_stop', 'std_msgs/Empty');
 		this._topic = new Topic(core.ros, '/heartbeat', 'core_interfaces/Heartbeat');
 		this._timeoutCount = 0;
 
@@ -36,7 +42,7 @@ export class HeartbeatManager {
 	}
 
 	async sendConfig() {
-		const response = await this._service.call(this._core.config.heartbeat, true);
+		const response = await this._connectService.call(this._core.config.heartbeat, true);
 
 		if (response) {
 			setInterval(() => this.checkHearbeats(), this._core.config.heartbeat.heartbeatCheckInterval);
@@ -111,5 +117,9 @@ export class HeartbeatManager {
 			this._core.state.update((s) => ({ ...s, connection: 'disconnected' }));
 			this._core.sendToast('error', 'Too many heartbeats timed out.');
 		}
+	}
+
+	dispose(): void {
+		this._disconnect.publish();
 	}
 }

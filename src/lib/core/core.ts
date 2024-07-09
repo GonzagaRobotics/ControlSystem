@@ -45,7 +45,7 @@ export class Core implements Disposable, Tickable {
 	readonly state: Writable<State>;
 	readonly ros: Ros;
 	readonly input: InputSystem;
-	readonly heartbeatManager: HeartbeatManager;
+	private readonly _heartbeatManager: HeartbeatManager;
 	private readonly _toastStore: ToastStore;
 
 	constructor(config: Config, toastStore: ToastStore) {
@@ -54,7 +54,7 @@ export class Core implements Disposable, Tickable {
 		this.input = new InputSystem();
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
-		this.heartbeatManager = new HeartbeatManager(this);
+		this._heartbeatManager = new HeartbeatManager(this);
 	}
 
 	sendToast(type: ToastType, message: string) {
@@ -96,7 +96,7 @@ export class Core implements Disposable, Tickable {
 
 		// Wait for the heartbeat manager to be ready
 		try {
-			await this.heartbeatManager.sendConfig();
+			await this._heartbeatManager.sendConfig();
 		} catch (error) {
 			this.state.update((s) => ({ ...s, connection: 'failed' }));
 			throw error;
@@ -110,6 +110,6 @@ export class Core implements Disposable, Tickable {
 	}
 
 	dispose() {
-		console.log('Core disposed');
+		this._heartbeatManager.dispose();
 	}
 }
