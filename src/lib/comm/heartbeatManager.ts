@@ -22,6 +22,8 @@ export class HeartbeatManager implements Disposable {
 	private _timeoutCount: number = 0;
 	private _heartbeats: Map<number, InternalHeartbeat> = new Map();
 	private _nextId: number = 0;
+	private _checkIntervalId?: NodeJS.Timeout;
+	private _sendIntervalId?: NodeJS.Timeout;
 
 	constructor(core: Core) {
 		this._core = core;
@@ -45,8 +47,15 @@ export class HeartbeatManager implements Disposable {
 		const response = await this._connectService.call(this._core.config.heartbeat, true);
 
 		if (response) {
-			setInterval(() => this.checkHearbeats(), this._core.config.heartbeat.heartbeatCheckInterval);
-			setInterval(() => this.sendHeartbeat(), this._core.config.heartbeat.heartbeatInterval);
+			this._checkIntervalId = setInterval(
+				() => this.checkHearbeats(),
+				this._core.config.heartbeat.heartbeatCheckInterval
+			);
+
+			this._sendIntervalId = setInterval(
+				() => this.sendHeartbeat(),
+				this._core.config.heartbeat.heartbeatInterval
+			);
 
 			return;
 		}
@@ -121,5 +130,8 @@ export class HeartbeatManager implements Disposable {
 
 	dispose(): void {
 		this._disconnect.publish();
+
+		clearInterval(this._checkIntervalId);
+		clearInterval(this._sendIntervalId);
 	}
 }
