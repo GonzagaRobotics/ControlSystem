@@ -3,6 +3,17 @@
 	roslibUrl: 'localhost:9090',
 	// Whether to fake a connection to the roslib server
 	fakeConnect: true,
+	// Hearbeat settings. These are shared with the rover
+	heartbeat: {
+		// How often a heartbeat is sent to the rover (ms)
+		heartbeatInterval: 1000,
+		// How often to check the status of our heartbeats (ms)
+		heartbeatCheckInterval: 500,
+		// How long before a heartbeat is considered timed out (ms)
+		heartbeatTimeout: 5000,
+		// When this many heartbeats timeout, the connection is considered lost
+		heartbeatTimeoutLimit: 3
+	},
 	// A list of all panes that can be used
 	panes: [
 		{
