@@ -28,8 +28,9 @@ export class IntervalPublisher implements Disposable {
 			const topic = this._topics.get(name)!;
 
 			if (topic.messageType != type) {
-				throw new Error(`Passed message type ${type} does not match \
-                    existing type ${topic} on ${name}`);
+				throw new Error(
+					`Passed message type ${type} does not match existing type ${topic.messageType} on ${name}`
+				);
 			}
 
 			return current as Writable<T>;
