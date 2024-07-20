@@ -14,6 +14,8 @@
 		// When this many heartbeats timeout, the connection is considered lost
 		heartbeatTimeoutLimit: 3
 	},
+	// How often the Interval Publisher sends data to the rover (Hz)
+	publishRate: 10,
 	// A list of all panes that can be used
 	panes: [
 		{

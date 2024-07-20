@@ -3,7 +3,8 @@ import { Ros } from './ros';
 import { writable, type Readable, type Writable } from 'svelte/store';
 
 export class Topic<T> {
-	private _internal: ROSLIB.Topic | null = null;
+	readonly messageType: string;
+	private readonly _internal: ROSLIB.Topic | null = null;
 	private readonly _lastSubMsg: Writable<T | undefined>;
 
 	constructor(ros: Ros, name: string, messageType: string) {
@@ -14,6 +15,8 @@ export class Topic<T> {
 				messageType
 			});
 		}
+
+		this.messageType = messageType;
 
 		this._lastSubMsg = writable(undefined, (set) => {
 			this._internal?.subscribe((message) => {

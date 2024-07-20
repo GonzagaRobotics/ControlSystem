@@ -11,6 +11,7 @@ export type Config = {
 	roslibUrl: string;
 	fakeConnect: boolean;
 	heartbeat: HeartbeatConfig;
+	publishRate: number;
 	panes: {
 		id: string;
 		name: string;

@@ -4,6 +4,7 @@ import { Ros } from '$lib/comm/ros';
 import { InputSystem } from '$lib/input/inputSystem';
 import type { ToastStore } from '@skeletonlabs/skeleton';
 import { HeartbeatManager } from '$lib/comm/heartbeatManager';
+import { IntervalPublisher } from '$lib/comm/intervalPublisher';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -52,6 +53,7 @@ export class Core implements Disposable, Tickable {
 	readonly state: Writable<State>;
 	readonly ros: Ros;
 	readonly input: InputSystem;
+	readonly intervalPublisher: IntervalPublisher;
 	private readonly _heartbeatManager: HeartbeatManager;
 	private readonly _toastStore: ToastStore;
 
@@ -62,6 +64,7 @@ export class Core implements Disposable, Tickable {
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
 		this._heartbeatManager = new HeartbeatManager(this);
+		this.intervalPublisher = new IntervalPublisher(this);
 	}
 
 	sendToast(type: ToastType, message: string) {
@@ -118,5 +121,6 @@ export class Core implements Disposable, Tickable {
 
 	dispose() {
 		this._heartbeatManager.dispose();
+		this.intervalPublisher.dispose();
 	}
 }
