@@ -3,6 +3,8 @@
 	roslibUrl: 'localhost:9090',
 	// Whether to fake a connection to the roslib server
 	fakeConnect: true,
+	// Whether to not send heartbeat messages and configuration to the rover
+	noHeartbeat: false,
 	// Hearbeat settings. These are shared with the rover
 	heartbeat: {
 		// How often a heartbeat is sent to the rover (ms)

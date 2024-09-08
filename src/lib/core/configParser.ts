@@ -10,6 +10,7 @@ export type HeartbeatConfig = {
 export type Config = {
 	roslibUrl: string;
 	fakeConnect: boolean;
+	noHeartbeat: boolean;
 	heartbeat: HeartbeatConfig;
 	publishRate: number;
 	panes: {

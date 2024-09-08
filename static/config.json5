@@ -1,6 +1,7 @@
 {
 	roslibUrl: 'localhost:9090',
 	fakeConnect: true,
+	noHeartbeat: false,
 	heartbeat: {
 		heartbeatInterval: 1000,
 		heartbeatCheckInterval: 500,
@@ -10,7 +11,8 @@
 	publishRate: 10,
 	panes: [
 		{ id: 'camera', name: 'Camera' },
-		{ id: 'motors', name: 'Motors' }
+		{ id: 'motors', name: 'Motors' },
+		{ id: 'arm', name: 'Arm' }
 	],
 	tabs: [
 		{
@@ -46,6 +48,22 @@
 				}
 			],
 			attributes: ['motors_readonly']
+		},
+		{
+			id: 'arm',
+			name: 'Arm',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 },
+					size: { x: 2, y: 1 }
+				},
+				{
+					id: 'arm',
+					position: { x: 2, y: 0 },
+					size: { x: 1, y: 1 }
+				}
+			]
 		}
 	]
 }

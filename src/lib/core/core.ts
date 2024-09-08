@@ -54,7 +54,7 @@ export class Core implements Disposable, Tickable {
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
-	private readonly _heartbeatManager: HeartbeatManager;
+	private readonly _heartbeatManager: HeartbeatManager | null;
 	private readonly _toastStore: ToastStore;
 
 	constructor(config: Config, toastStore: ToastStore) {
@@ -63,7 +63,13 @@ export class Core implements Disposable, Tickable {
 		this.input = new InputSystem();
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
-		this._heartbeatManager = new HeartbeatManager(this);
+
+		if (this.config.noHeartbeat) {
+			this._heartbeatManager = null;
+		} else {
+			this._heartbeatManager = new HeartbeatManager(this);
+		}
+
 		this.intervalPublisher = new IntervalPublisher(this);
 	}
 
@@ -105,14 +111,26 @@ export class Core implements Disposable, Tickable {
 		}
 
 		// Wait for the heartbeat manager to be ready
+		if (this.config.noHeartbeat) {
+			this.state.update((s) => ({ ...s, connection: 'connected' }));
+
+			return true;
+		}
+
 		try {
-			await this._heartbeatManager.sendConfig();
+			const res = await this._heartbeatManager!.sendConfig();
+
+			if (res) {
+				this.state.update((s) => ({ ...s, connection: 'connected' }));
+
+				return true;
+			}
 		} catch (error) {
 			this.state.update((s) => ({ ...s, connection: 'failed' }));
 			throw error;
 		}
 
-		this.state.update((s) => ({ ...s, connection: 'connected' }));
+		return false;
 	}
 
 	tick(deltaTime: number): void {
@@ -120,7 +138,7 @@ export class Core implements Disposable, Tickable {
 	}
 
 	dispose() {
-		this._heartbeatManager.dispose();
+		this._heartbeatManager?.dispose();
 		this.intervalPublisher.dispose();
 	}
 }

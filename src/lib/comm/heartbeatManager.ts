@@ -1,27 +1,17 @@
-import { CONTROL_SOURCE_NAME, ROVER_SOURCE_NAME, type Core, type Disposable } from '$lib/core/core';
+import { type Core, type Disposable } from '$lib/core/core';
 import { get } from 'svelte/store';
 import { Topic } from './topic';
 import { Service } from './service';
 import type { HeartbeatConfig } from '$lib/core/configParser';
 
-type Heartbeat = {
-	source: string;
-	id: number;
-};
-
-type InternalHeartbeat = {
-	time: Date;
-	timedOut: boolean;
-};
-
 export class HeartbeatManager implements Disposable {
-	private readonly _connectService: Service<HeartbeatConfig, boolean>;
+	private readonly _connectService: Service<HeartbeatConfig, { ready: boolean }>;
 	private readonly _disconnect: Topic<void>;
-	private readonly _topic: Topic<Heartbeat>;
+	private readonly _inTopic: Topic<void>;
+	private readonly _outTopic: Topic<void>;
 	private readonly _core: Core;
+	private _lastHeartbeatTime: Date | undefined;
 	private _timeoutCount: number = 0;
-	private _heartbeats: Map<number, InternalHeartbeat> = new Map();
-	private _nextId: number = 0;
 	private _checkIntervalId?: NodeJS.Timeout;
 	private _sendIntervalId?: NodeJS.Timeout;
 
@@ -29,24 +19,29 @@ export class HeartbeatManager implements Disposable {
 		this._core = core;
 		this._connectService = new Service(
 			core.ros,
-			'/heartbeat_config',
-			'core_interfaces/HeartbeatConfig'
+			'/heartbeat/connect',
+			'core_interfaces/HeartbeatConnect'
 		);
-		this._disconnect = new Topic(core.ros, '/heartbeat_stop', 'std_msgs/Empty');
-		this._topic = new Topic(core.ros, '/heartbeat', 'core_interfaces/Heartbeat');
+		this._disconnect = new Topic(
+			core.ros,
+			'/heartbeat/disconnect',
+			'core_interfaces/HeartbeatDisconnect'
+		);
+		this._inTopic = new Topic(core.ros, '/heartbeat/control', 'core_interfaces/Heartbeat');
+		this._outTopic = new Topic(core.ros, '/heartbeat/rover', 'core_interfaces/Heartbeat');
 		this._timeoutCount = 0;
 
-		this._topic.subscribe().subscribe((heartbeat) => {
-			if (heartbeat && heartbeat.source == ROVER_SOURCE_NAME) {
-				this.onHeartbeat(heartbeat);
+		this._inTopic.subscribe().subscribe((heartbeat) => {
+			if (heartbeat) {
+				this.onHeartbeat();
 			}
 		});
 	}
 
 	async sendConfig() {
-		const response = await this._connectService.call(this._core.config.heartbeat, true);
+		const response = await this._connectService.call(this._core.config.heartbeat, { ready: true });
 
-		if (response) {
+		if (response.ready) {
 			this._checkIntervalId = setInterval(
 				() => this.checkHearbeats(),
 				this._core.config.heartbeat.heartbeatCheckInterval
@@ -56,70 +51,48 @@ export class HeartbeatManager implements Disposable {
 				() => this.sendHeartbeat(),
 				this._core.config.heartbeat.heartbeatInterval
 			);
-
-			return;
 		}
 
-		throw new Error(
-			'The rover did not accept our heartbeat configuration. \
-			There is probably another instance of this that is active or did not cleanly shut down.'
-		);
+		return response.ready;
 	}
 
 	sendHeartbeat() {
-		this._heartbeats.set(this._nextId, {
-			time: new Date(),
-			timedOut: false
-		});
-
-		this._topic.publish({
-			source: CONTROL_SOURCE_NAME,
-			id: this._nextId
-		});
+		this._outTopic.publish();
+		this._lastHeartbeatTime = new Date();
 
 		if (this._core.config.fakeConnect) {
-			this.onHeartbeat({
-				source: ROVER_SOURCE_NAME,
-				id: this._nextId
-			});
+			this.onHeartbeat();
 		}
-
-		this._nextId++;
 	}
 
-	onHeartbeat(heartbeat: Heartbeat) {
+	onHeartbeat() {
 		const now = new Date();
-		const sent = this._heartbeats.get(heartbeat.id);
+		const sent = this._lastHeartbeatTime || now;
 
-		if (!sent) {
-			console.error('Received heartbeat with unknown id:', heartbeat.id);
-			return;
-		}
-
-		const latency = now.getTime() - sent.time.getTime();
-		this._heartbeats.delete(heartbeat.id);
+		const latency = now.getTime() - sent.getTime();
 		this._timeoutCount = 0;
 
 		this._core.state.update((s) => ({ ...s, latency, connection: 'connected' }));
 	}
 
 	checkHearbeats() {
-		if (get(this._core.state).connection != 'connected') {
+		if (get(this._core.state).connection != 'connected' || this._lastHeartbeatTime == undefined) {
 			return;
 		}
 
 		const now = new Date();
+		const interval = this._core.config.heartbeat.heartbeatInterval;
 		const timeout = this._core.config.heartbeat.heartbeatTimeout;
+		const expectedHeartbeatTime = new Date(
+			this._lastHeartbeatTime.getTime() + interval * (this._timeoutCount + 1)
+		);
 
-		for (const [, heartbeat] of this._heartbeats) {
-			if (now.getTime() - heartbeat.time.getTime() > timeout && !heartbeat.timedOut) {
-				if (this._timeoutCount == 0) {
-					this._core.sendToast('warning', 'A heartbeat timed out.');
-				}
-
-				this._timeoutCount++;
-				heartbeat.timedOut = true;
+		if (now.getTime() - expectedHeartbeatTime.getTime() > timeout) {
+			if (this._timeoutCount == 0) {
+				this._core.sendToast('warning', 'A heartbeat timed out.');
 			}
+
+			this._timeoutCount++;
 		}
 
 		if (this._timeoutCount >= this._core.config.heartbeat.heartbeatTimeoutLimit) {

@@ -28,20 +28,33 @@
 	$: _textClasses =
 		rollingLatency > core.config.heartbeat.heartbeatInterval ? 'text-warning-500' : '';
 
-	function format(n: number) {
+	function formatNumber(n: number) {
 		if (n < 0) return '--';
 
-		if (n < 1000) return `${n.toFixed(0)} ms`;
+		if (n < 1000) return n.toFixed(0);
 
-		return `${(n / 1000).toFixed(2)} s`;
+		return (n / 1000).toFixed(2);
+	}
+
+	function formatUnit(n: number) {
+		if (n < 0) return '';
+
+		if (n < 1000) return 'ms';
+
+		return 's';
 	}
 </script>
 
-<div class="flex flex-row justify-center items-center gap-1">
+<div class="flex flex-row justify-start items-center gap-1 min-w-28">
 	<Heartbeat class={_heartbeatClasses} style="font-size: 2em;" />
 	{#key rollingLatency}
 		<p class="h3 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
-			{format(rollingLatency)}
+			{formatNumber(rollingLatency)}
+		</p>
+	{/key}
+	{#key formatUnit(rollingLatency)}
+		<p class="h3 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
+			{formatUnit(rollingLatency)}
 		</p>
 	{/key}
 </div>

@@ -24,14 +24,17 @@
 	const core = getContext<Core>('core');
 	const tabAttributes = getContext<Readable<string[]>>('tabAttributes');
 
-	const motorsStatusTopic = new Topic<MotorsStatus>(
-		core.ros,
-		'/drive_system/status',
-		'drive_system_interfaces/SystemStatus'
-	);
-	const motorStatus = motorsStatusTopic.subscribe();
+	// const motorsStatusTopic = new Topic<MotorsStatus>(
+	// 	core.ros,
+	// 	'/drive_system/status',
+	// 	'drive_system_interfaces/SystemStatus'
+	// );
+	// const motorStatus = motorsStatusTopic.subscribe();
 </script>
 
-<Pane {id} {start} {size} loading={$motorStatus == undefined && !core.config.fakeConnect}>
+<!-- <Pane {id} {start} {size} loading={$motorStatus == undefined && !core.config.fakeConnect}>
+	<svelte:fragment slot="main"></svelte:fragment>
+</Pane> -->
+<Pane {id} {start} {size}>
 	<svelte:fragment slot="main"></svelte:fragment>
 </Pane>
