@@ -12,7 +12,8 @@
 	panes: [
 		{ id: 'camera', name: 'Camera' },
 		{ id: 'motors', name: 'Motors' },
-		{ id: 'arm', name: 'Arm' }
+		{ id: 'arm', name: 'Arm' },
+		{ id: 'science', name: 'Science' }
 	],
 	tabs: [
 		{
@@ -60,6 +61,22 @@
 				},
 				{
 					id: 'arm',
+					position: { x: 2, y: 0 },
+					size: { x: 1, y: 1 }
+				}
+			]
+		},
+		{
+			id: 'science',
+			name: 'Science',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 },
+					size: { x: 2, y: 1 }
+				},
+				{
+					id: 'science',
 					position: { x: 2, y: 0 },
 					size: { x: 1, y: 1 }
 				}
