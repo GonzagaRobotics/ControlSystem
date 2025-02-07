@@ -1,0 +1,32 @@
+{
+	roslibUrl: 'localhost:9090',
+	fakeConnect: false,
+	noHeartbeat: false,
+	heartbeat: {
+		heartbeatInterval: 1000,
+		heartbeatCheckInterval: 500,
+		heartbeatTimeout: 5000,
+		heartbeatTimeoutLimit: 3
+	},
+	publishRate: 10,
+	panes: [
+		{
+			id: 'test',
+			name: 'Test'
+		}
+	],
+	tabs: [
+		{
+			id: 'first',
+			name: 'First',
+			panes: [
+				{
+					id: 'test',
+					position: { x: 0, y: 0 },
+					size: { x: 1, y: 1 }
+				}
+			],
+			attributes: []
+		}
+	]
+}
