@@ -1,6 +1,6 @@
 # Control System
 
-Version: 0.11.0
+Version: 0.12.0
 
 Code name: N/A
 
@@ -40,6 +40,7 @@ This file is located at `static/config.json5`. You can copy the `config.starter.
 ### Base Options
 
 - `roslibUrl` - The URL to the rosbridge server. Include the hostname and port, but not the protocol.
+- `rtcSignalingUrl` - The URL to the Camera System's signaling server. Include the hostname and port, but not the protocol.
 - `fakeConnect` - If `true`, the system will not attempt to connect to the rosbridge server. It will pretend to be connected and fake data will be used if defined. Meant for testing.
 - `noHeartbeat` - If `true`, the system will not undergo its normal heartbeat configuration and no heartbeats will be sent, nor will the system check for them. Meant for testing when you want to use ROS without having to use CoreSystem.
 - `publishRate` - The rate at which the Interval Publisher will publish data in Hz. Note that not all publishers go through the Interval Publisher, and that too low of a rate may cause unnacceptable input latency.

@@ -1,5 +1,6 @@
 {
 	roslibUrl: 'localhost:9090',
+	rtcSignalingUrl: 'localhost:8080',
 	fakeConnect: false,
 	noHeartbeat: false,
 	heartbeat: {
