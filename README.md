@@ -67,6 +67,8 @@ Like panes, each tab is an object in the `tabs` array. Each tab has the followin
 - `name` - Display name for the tab.
 - `attributes` - An array of strings defining attributes for the tab.
 
+The first tab in the array will be the default tab when ControlSystem starts. There is no way to change this at the moment.
+
 #### Tab Panes
 
 The tab has a `panes` array that contains the panes that are displayed in the tab. This is different from the `panes` array, and any pane you use here must be defined in the main `panes` array.
