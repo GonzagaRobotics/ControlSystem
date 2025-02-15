@@ -1,4 +1,5 @@
 import Arm from './Arm.svelte';
+import AutoNav from './AutoNav.svelte';
 import Camera from './Camera.svelte';
 import Motors from './Motors.svelte';
 import Science from './Science.svelte';
@@ -9,5 +10,6 @@ export const paneList = {
 	camera: Camera,
 	motors: Motors,
 	arm: Arm,
+	autoNav: AutoNav,
 	science: Science
 };
