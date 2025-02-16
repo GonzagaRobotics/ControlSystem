@@ -14,6 +14,8 @@ export class Ros {
 		this.internal = new ROSLIB.Ros({
 			url: 'ws://' + core.config.roslibUrl
 		});
+        
+        console.log(core.config.roslibUrl);
 
 		this.internal.on('connection', () => {
 			console.log('Connected to roslib');
