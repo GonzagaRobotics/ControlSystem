@@ -9,8 +9,8 @@ export type Button =
 	| 'Y'
 	| 'LB'
 	| 'RB'
-	| 'LT'
-	| 'RT'
+// 	| 'LT'
+// 	| 'RT'
 	| 'Back'
 	| 'Start'
 	| 'LS'
@@ -36,8 +36,8 @@ const defaultGamepadState: GamepadState = {
 		Y: 0,
 		LB: 0,
 		RB: 0,
-		LT: 0,
-		RT: 0,
+ 		// LT: 0,
+ 		// RT: -1,
 		Back: 0,
 		Start: 0,
 		LS: 0,
@@ -149,14 +149,15 @@ export class InputSystem implements Tickable {
 		// to determine what inputs actually changed and update their stores
 		const newGamepadState: GamepadState = {
 			buttons: {
+                // See https://hardwaretester.com/gamepad
 				A: gamepad.buttons[0].value,
 				B: gamepad.buttons[1].value,
-				X: gamepad.buttons[2].value,
-				Y: gamepad.buttons[3].value,
+				X: gamepad.buttons[3].value,
+				Y: gamepad.buttons[2].value,
 				LB: gamepad.buttons[4].value,
 				RB: gamepad.buttons[5].value,
-				LT: gamepad.buttons[6].value,
-				RT: gamepad.buttons[7].value,
+		 		// LT: gamepad.buttons[6].value,
+		 		// RT: gamepad.buttons[7].value,
 				Back: gamepad.buttons[8].value,
 				Start: gamepad.buttons[9].value,
 				LS: gamepad.buttons[10].value,
@@ -168,13 +169,16 @@ export class InputSystem implements Tickable {
 				Center: gamepad.buttons[16].value
 			},
 			axes: {
-				// Invert joystick axes so that positive is up and left
-				LX: gamepad.axes[0] * -1,
-				LY: gamepad.axes[1] * -1,
-				RX: gamepad.axes[2] * -1,
-				RY: gamepad.axes[3] * -1,
-				LT: gamepad.buttons[6].value,
-				RT: gamepad.buttons[7].value
+                // See https://hardwaretester.com/gamepad
+                
+				// // Invert joystick axes so that positive is up and left
+                // Positive is down and to the right
+				LX: gamepad.axes[0] /* * -1*/,
+				LY: gamepad.axes[1] /* * -1*/,
+				RX: gamepad.axes[2] /* * -1*/,
+				RY: gamepad.axes[3] /* * -1*/,
+				LT: gamepad.axes[4],
+				RT: gamepad.axes[5]
 			}
 		};
 

@@ -11,26 +11,39 @@
 	const core = getContext<Core>('core');
 
 	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
-	const baseLeftAxis = core.input.registerAxisInput('LT');
-	const baseRightAxis = core.input.registerAxisInput('RT');
+	const baseAxis = core.input.registerAxisInput('RX');
 
-	$: baseTopic.publish({ data: $baseLeftAxis - $baseRightAxis });
+	$: baseTopic.publish({ data: $baseAxis });
 
 	const shoulderTopic = new Topic<{ data: number }>(core.ros, '/arm/shoulder', 'std_msgs/Float32');
 	const shoulderAxis = core.input.registerAxisInput('LY');
 
-	$: shoulderTopic.publish({ data: -$shoulderAxis });
+	$: shoulderTopic.publish({ data: $shoulderAxis});
 
 	const forearmTopic = new Topic<{ data: number }>(core.ros, '/arm/forearm', 'std_msgs/Float32');
 	const forearmAxis = core.input.registerAxisInput('RY');
 
 	$: forearmTopic.publish({ data: $forearmAxis });
+	// $: shoulderTopic.publish({ data: $forearmAxis });
 
 	const wristTopic = new Topic<{ data: number }>(core.ros, '/arm/wrist', 'std_msgs/Float32');
-	const wristOpenButton = core.input.registerButtonInput('A');
-	const wristCloseButton = core.input.registerButtonInput('B');
+	const wristOpenAxis = core.input.registerAxisInput('LT');
+	const wristCloseAxis = core.input.registerAxisInput('RT');
 
-	$: wristTopic.publish({ data: ($wristOpenButton ? 1 : 0) - ($wristCloseButton ? 1 : 0) });
+
+	$: wristTopic.publish({ data: Math.max(0, $wristOpenAxis) - Math.max($wristCloseAxis, 0)});
+	
+    const grabberTopic = new Topic<{ data: number }>(
+    	core.ros,
+    	'/arm/minor/grabber',
+    	'std_msgs/Int32'
+    );
+    const grabberOpen = core.input.registerButtonInput('B');
+    const grabberClose = core.input.registerButtonInput('A');
+                                                                                                     
+    $: grabberTopic.publish({ data: ($grabberOpen? 1 : 0) - ($grabberClose? 1 : 0) });
+
+
 </script>
 
 <Pane {id} {start} {size}>
