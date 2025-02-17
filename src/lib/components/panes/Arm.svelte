@@ -11,18 +11,18 @@
 	const core = getContext<Core>('core');
 
 	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
-	const baseLeftAxis = core.input.registerAxisInput('LT');
-	const baseRightAxis = core.input.registerAxisInput('RT');
+	const baseLeftAxis = core.input.registerAxisInput('LT', 1.75);
+	const baseRightAxis = core.input.registerAxisInput('RT', 1.75);
 
 	$: baseTopic.publish({ data: $baseLeftAxis - $baseRightAxis });
 
 	const shoulderTopic = new Topic<{ data: number }>(core.ros, '/arm/shoulder', 'std_msgs/Float32');
-	const shoulderAxis = core.input.registerAxisInput('LY');
+	const shoulderAxis = core.input.registerAxisInput('LY', 1.75);
 
 	$: shoulderTopic.publish({ data: -$shoulderAxis });
 
 	const forearmTopic = new Topic<{ data: number }>(core.ros, '/arm/forearm', 'std_msgs/Float32');
-	const forearmAxis = core.input.registerAxisInput('RY');
+	const forearmAxis = core.input.registerAxisInput('RY', 1.75);
 
 	$: forearmTopic.publish({ data: $forearmAxis });
 
