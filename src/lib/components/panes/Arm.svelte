@@ -10,10 +10,13 @@
 
 	const core = getContext<Core>('core');
 
-	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
-	const baseAxis = core.input.registerAxisInput('RX');
+	const minorXTopic = new Topic<{ data: number }>(core.ros, '/arm/minor/x', 'std_msgs/Float32');
+	const minorXRight = core.input.registerButtonInput('Left');
+	const minorXLeft = core.input.registerButtonInput('Right');
 
-	$: baseTopic.publish({ data: $baseAxis });
+    // -1 for left, 1 for right
+    $: minorXTopic.publish({ data: ($minorXLeft? 1 : 0) - ($minorXRight? 1 : 0)  });
+
 
 	const shoulderTopic = new Topic<{ data: number }>(core.ros, '/arm/shoulder', 'std_msgs/Float32');
 	const shoulderAxis = core.input.registerAxisInput('LY');
@@ -40,8 +43,14 @@
     );
     const grabberOpen = core.input.registerButtonInput('B');
     const grabberClose = core.input.registerButtonInput('A');
-                                                                                                     
+   
+    // 1 for open, -1 for closed
     $: grabberTopic.publish({ data: ($grabberOpen? 1 : 0) - ($grabberClose? 1 : 0) });
+
+	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
+	const baseAxis = core.input.registerAxisInput('LX');
+
+	$: baseTopic.publish({ data: $baseAxis });
 
 
 </script>
