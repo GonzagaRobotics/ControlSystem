@@ -24,12 +24,9 @@
 	const forwardAxis = core.input.registerAxisInput('LY');
 	const turnAxis = core.input.registerAxisInput('LX');
 
-	$: left = clamp($forwardAxis + $turnAxis, -1, 1);
-	$: right = clamp($forwardAxis - $turnAxis, -1, 1);
-
 	$: {
 		if (!readonly) {
-			driveTopic.publish({ x: left, y: right, z: 0 });
+			driveTopic.publish({ x: $forwardAxis, y: $turnAxis, z: 0 });
 		}
 	}
 </script>
@@ -37,9 +34,9 @@
 <Pane {id} {start} {size} containerClasses="flex flex-col justify-end items-center">
 	<svelte:fragment slot="main">
 		<div class="flex-grow flex flex-row justify-center items-center">
-			<p class="w-1/4 h3 text-right">{(left * 100).toFixed(0)}%</p>
+			<!-- <p class="w-1/4 h3 text-right">{(left * 100).toFixed(0)}%</p> -->
 			<img class="w-1/2" src="/rover_top_filled.png" alt="" />
-			<p class="w-1/4 h3 text-left">{(right * 100).toFixed(0)}%</p>
+			<!-- <p class="w-1/4 h3 text-left">{(right * 100).toFixed(0)}%</p> -->
 		</div>
 
 		{#if readonly}
