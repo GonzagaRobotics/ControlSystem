@@ -2,6 +2,7 @@
 	roslibUrl: 'localhost:9090',
 	fakeConnect: false,
 	noHeartbeat: true,
+	rtcSignalingUrl: 'localhost:8080',
 	heartbeat: {
 		heartbeatInterval: 1000,
 		heartbeatCheckInterval: 500,
@@ -13,7 +14,9 @@
 		{ id: 'camera', name: 'Camera' },
 		{ id: 'motors', name: 'Motors' },
 		{ id: 'arm', name: 'Arm' },
-		{ id: 'science', name: 'Science' }
+		{ id: 'autoNav', name: 'Auto Nav' },
+		{ id: 'science', name: 'Science' },
+		{ id: 'gnss', name: 'GNSS' }
 	],
 	tabs: [
 		{
@@ -29,13 +32,18 @@
 					id: 'motors',
 					position: { x: 2, y: 0 },
 					size: { x: 1, y: 1 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 },
+					size: { x: 2, y: 1 }
 				}
 			],
 			attributes: []
 		},
 		{
-			id: 'navigate',
-			name: 'Navigate',
+			id: 'autonomous',
+			name: 'Autonomous',
 			panes: [
 				{
 					id: 'camera',
@@ -46,6 +54,16 @@
 					id: 'motors',
 					position: { x: 2, y: 0 },
 					size: { x: 1, y: 1 }
+				},
+				{
+					id: 'autoNav',
+					position: { x: 0, y: 1 },
+					size: { x: 2, y: 1 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 },
+					size: { x: 2, y: 1 }
 				}
 			],
 			attributes: ['motors_readonly']
@@ -63,6 +81,11 @@
 					id: 'arm',
 					position: { x: 2, y: 0 },
 					size: { x: 1, y: 1 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 },
+					size: { x: 2, y: 1 }
 				}
 			]
 		},
@@ -79,6 +102,11 @@
 					id: 'science',
 					position: { x: 2, y: 0 },
 					size: { x: 1, y: 1 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 },
+					size: { x: 2, y: 1 }
 				}
 			]
 		}

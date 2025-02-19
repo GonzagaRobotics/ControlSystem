@@ -9,6 +9,7 @@ export type HeartbeatConfig = {
 
 export type Config = {
 	roslibUrl: string;
+	rtcSignalingUrl: string;
 	fakeConnect: boolean;
 	noHeartbeat: boolean;
 	heartbeat: HeartbeatConfig;
