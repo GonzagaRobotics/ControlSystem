@@ -93,7 +93,12 @@
 				<p class="text-lg">Current Plan: None</p>
 			{/if}
 
-			<button class="w-3/4 mt-2 btn btn-lg variant-filled-primary" on:click={onEnableDisable}>
+			<button
+				class="w-3/4 mt-2 btn btn-lg variant-filled-{state === State.DISABLED
+					? 'primary'
+					: 'warning'}"
+				on:click={onEnableDisable}
+			>
 				{state === State.DISABLED ? 'Enable' : 'Disable'}
 			</button>
 		</div>
@@ -166,13 +171,13 @@
 			{/if}
 
 			{#if canExecute}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-primary" on:click={onExecute}>
+				<button class="w-3/4 mb-2 btn btn-lg variant-filled-success" on:click={onExecute}>
 					Execute
 				</button>
 			{/if}
 
 			{#if canTerminate}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-primary" on:click={onTerminate}>
+				<button class="w-3/4 mb-2 btn btn-lg variant-filled-error" on:click={onTerminate}>
 					Terminate
 				</button>
 			{/if}
