@@ -22,11 +22,11 @@
 	$: maxArmSpeed = 1.0;
 	$: safetyMultiplier = (!requirePress || allowMovement ? 1 : 0) * maxArmSpeed;
 
-	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
-	const baseLeftAxis = core.input.registerAxisInput('LT', 1.75);
-	const baseRightAxis = core.input.registerAxisInput('RT', 1.75);
+	// const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
+	// const baseLeftAxis = core.input.registerAxisInput('LT', 1.75);
+	// const baseRightAxis = core.input.registerAxisInput('RT', 1.75);
 
-	$: baseTopic.publish({ data: ($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
+	// $: baseTopic.publish({ data: ($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
 
 	const shoulderTopic = new Topic<{ data: number }>(core.ros, '/arm/shoulder', 'std_msgs/Float32');
 	const shoulderAxis = core.input.registerAxisInput('LY', 1.75);
@@ -43,7 +43,7 @@
 	const wristCloseAxis = core.input.registerAxisInput('RT');
 
 
-	$: wristTopic.publish({ data: Math.max(0, $wristOpenAxis) - Math.max($wristCloseAxis, 0)});
+	$: wristTopic.publish({ data: (Math.max(0, $wristOpenAxis) - Math.max($wristCloseAxis, 0)) * safetyMultiplier});
 	
     const grabberTopic = new Topic<{ data: number }>(
     	core.ros,
@@ -59,12 +59,7 @@
 	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
 	const baseAxis = core.input.registerAxisInput('LX');
 
-	$: baseTopic.publish({ data: $baseAxis });
-
-
-	$: wristTopic.publish({
-		data: (($wristOpenButton ? 1 : 0) - ($wristCloseButton ? 1 : 0)) * safetyMultiplier
-	});
+	$: baseTopic.publish({ data: ($baseAxis) * safetyMultiplier});
 </script>
 
 <Pane {id} {start} {size}>
