@@ -12,7 +12,7 @@
 	let video: HTMLVideoElement;
 
 	let socket = new WebSocket(`ws://${core.config.rtcSignalingUrl}/control`);
-	let pc = new RTCPeerConnection({ iceServers: [] });
+	let pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 	const polite = false;
 
 	pc.onconnectionstatechange = (event) => {
@@ -47,7 +47,7 @@
 		pc.onicecandidate = (event) => {
 			console.log('THIS SHOULD HAPPEN', event);
 			if (event.candidate) {
-			    console.log('after if');
+				console.log('after if');
 				console.log('Sending candidate');
 
 				socket.send(JSON.stringify({ candidate: event.candidate }));
