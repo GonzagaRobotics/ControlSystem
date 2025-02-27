@@ -45,7 +45,7 @@
 		};
 
 		pc.onicecandidate = (event) => {
-			console.log('before if');
+			console.log('THIS SHOULD HAPPEN', event);
 			if (event.candidate) {
 			    console.log('after if');
 				console.log('Sending candidate');
