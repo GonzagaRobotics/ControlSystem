@@ -1,8 +1,13 @@
 {
-	roslibUrl: 'localhost:9090',
-	fakeConnect: false,
+	// roslibUrl: 'localhost:9090',
+    roslibUrl: '10.248.23.158:9090',
+    // roslibUrl: '10.248.57.190:8080',
+	// fakeConnect: false,
+	fakeConnect: true,
 	noHeartbeat: true,
-	rtcSignalingUrl: 'localhost:8080',
+    rtcSignalingUrl: '10.248.23.158:8080',
+    // rtcSignalingUrl: '10.248.57.190:8080',
+	// rtcSignalingUrl: 'localhost:8080',
 	heartbeat: {
 		heartbeatInterval: 1000,
 		heartbeatCheckInterval: 500,

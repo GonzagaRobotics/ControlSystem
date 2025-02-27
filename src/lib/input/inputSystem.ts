@@ -9,8 +9,8 @@ export type Button =
 	| 'Y'
 	| 'LB'
 	| 'RB'
-// 	| 'LT'
-// 	| 'RT'
+ 	| 'LT'
+ 	| 'RT'
 	| 'Back'
 	| 'Start'
 	| 'LS'
@@ -36,8 +36,8 @@ const defaultGamepadState: GamepadState = {
 		Y: 0,
 		LB: 0,
 		RB: 0,
- 		// LT: 0,
- 		// RT: -1,
+ 		LT: 0,
+ 		RT: -1,
 		Back: 0,
 		Start: 0,
 		LS: 0,
@@ -156,8 +156,8 @@ export class InputSystem implements Tickable {
 				Y: gamepad.buttons[2].value,
 				LB: gamepad.buttons[4].value,
 				RB: gamepad.buttons[5].value,
-		 		// LT: gamepad.buttons[6].value,
-		 		// RT: gamepad.buttons[7].value,
+		 		LT: gamepad.buttons[6].value,
+		 		RT: gamepad.buttons[7].value,
 				Back: gamepad.buttons[8].value,
 				Start: gamepad.buttons[9].value,
 				LS: gamepad.buttons[10].value,

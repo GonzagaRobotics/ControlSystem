@@ -24,11 +24,15 @@
 	const forwardAxis = core.input.registerAxisInput('LY');
 	const turnAxis = core.input.registerAxisInput('LX');
 
-	$: {
-		if (!readonly) {
-			driveTopic.publish({ x: $forwardAxis, y: $turnAxis, z: 0 });
-		}
-	}
+
+	$: driveTopic.publish({ x: $forwardAxis, y: $turnAxis * 0.75, z: 0 });
+
+
+	// $: {
+	// 	if (!readonly) {
+	// 		driveTopic.publish({ x: $forwardAxis, y: $turnAxis, z: 0 });
+	// 	}
+	// }
 </script>
 
 <Pane {id} {start} {size} containerClasses="flex flex-col justify-end items-center">

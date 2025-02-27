@@ -15,10 +15,10 @@
 		'/science/auger/vertical',
 		'std_msgs/Float32'
 	);
-	const augerVerticalUp = core.input.registerAxisInput('LT');
-	const augerVerticalDown = core.input.registerAxisInput('RT');
+	const augerVerticalUp = core.input.registerButtonInput('RB');
+	const augerVerticalDown = core.input.registerButtonInput('LB');
 
-	$: augerVerticalTopic.publish({ data: $augerVerticalUp - $augerVerticalDown });
+    $: augerVerticalTopic.publish({ data: ($augerVerticalUp? 1 : 0) - ($augerVerticalDown? 1 : 0) });
 
 	const augerDrillTopic = new Topic<{ data: number }>(
 		core.ros,
@@ -34,10 +34,9 @@
 		'/science/auger/actuate',
 		'std_msgs/Float32'
 	);
-	const augerActuateUp = core.input.registerButtonInput('Y');
-	const augerActuateDown = core.input.registerButtonInput('B');
+	const augerActuate = core.input.registerAxisInput('RY');
 
-	$: augerActuateTopic.publish({ data: ($augerActuateUp ? 1 : 0) - ($augerActuateDown ? 1 : 0) });
+	$: augerActuateTopic.publish({ data: $augerActuate });
 </script>
 
 <Pane {id} {start} {size} containerClasses="flex items-center">
@@ -47,7 +46,7 @@
 
 			<div>Auger Drill Input: {$augerDrill}</div>
 
-			<div>Auger Actuate Input: {($augerActuateUp ? 1 : 0) - ($augerActuateDown ? 1 : 0)}</div>
+			<div>Auger Actuate Input: {($augerActuate)}</div>
 		</div>
 	</svelte:fragment>
 </Pane>

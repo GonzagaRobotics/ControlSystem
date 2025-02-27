@@ -45,7 +45,9 @@
 		};
 
 		pc.onicecandidate = (event) => {
+			console.log('before if');
 			if (event.candidate) {
+			    console.log('after if');
 				console.log('Sending candidate');
 
 				socket.send(JSON.stringify({ candidate: event.candidate }));

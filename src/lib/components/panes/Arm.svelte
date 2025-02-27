@@ -39,9 +39,12 @@
 	$: forearmTopic.publish({ data: $forearmAxis * safetyMultiplier });
 
 	const wristTopic = new Topic<{ data: number }>(core.ros, '/arm/wrist', 'std_msgs/Float32');
-	const wristOpenAxis = core.input.registerAxisInput('LT');
-	const wristCloseAxis = core.input.registerAxisInput('RT');
+	// const wristOpenAxis = core.input.registerAxisInput('LT');
+	// const wristCloseAxis = core.input.registerAxisInput('RT');
 
+    // Chromium maps LT, RT to buttons, firefox maps them to axes inputs
+	const wristOpenAxis = core.input.registerButtonInput('LT');
+	const wristCloseAxis = core.input.registerButtonInput('RT');
 
 	$: wristTopic.publish({ data: (Math.max(0, $wristOpenAxis) - Math.max($wristCloseAxis, 0)) * safetyMultiplier});
 	
@@ -54,7 +57,10 @@
     const grabberClose = core.input.registerButtonInput('A');
    
     // 1 for open, -1 for closed
+    // $: grabberTopic.publish({ data: allowMovement  ? ((($grabberOpen? 1 : 0) - ($grabberClose? 1 : 0)) : 0 });
+    // $: grabberTopic.publish({ data: (allowMovement ? ($grabberOpen? 1 : 0) - ($grabberClose? 1 : 0) )});
     $: grabberTopic.publish({ data: ($grabberOpen? 1 : 0) - ($grabberClose? 1 : 0) });
+
 
 	const baseTopic = new Topic<{ data: number }>(core.ros, '/arm/base', 'std_msgs/Float32');
 	const baseAxis = core.input.registerAxisInput('LX');
