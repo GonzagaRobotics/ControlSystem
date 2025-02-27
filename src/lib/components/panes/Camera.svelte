@@ -12,7 +12,15 @@
 	let video: HTMLVideoElement;
 
 	let socket = new WebSocket(`ws://${core.config.rtcSignalingUrl}/control`);
-	let pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+	let pc = new RTCPeerConnection({
+		iceServers: [
+			{
+				urls: 'turn:openrelay.metered.ca:80',
+				username: 'openrelayproject',
+				credential: 'openrelayproject'
+			}
+		]
+	});
 	const polite = false;
 
 	pc.onconnectionstatechange = (event) => {
