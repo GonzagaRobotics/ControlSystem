@@ -45,6 +45,8 @@
 		};
 
 		pc.onicecandidate = (event) => {
+			console.log('THIS SHOULD HAPPEN', event);
+
 			if (event.candidate) {
 				console.log('Sending candidate');
 
