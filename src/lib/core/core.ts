@@ -3,7 +3,7 @@ import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros';
 import { InputSystem } from '$lib/input/inputSystem';
 import type { ToastStore } from '@skeletonlabs/skeleton';
-// import { HeartbeatManager } from '$lib/comm/heartbeatManager';
+import { HeartbeatManager } from '$lib/comm/heartbeatManager';
 import { IntervalPublisher } from '$lib/comm/intervalPublisher';
 
 /**
@@ -54,7 +54,7 @@ export class Core implements Disposable, Tickable {
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
-	// private readonly _heartbeatManager: HeartbeatManager | null;
+	private readonly _heartbeatManager: HeartbeatManager | null;
 	private readonly _toastStore: ToastStore;
 
 	constructor(config: Config, toastStore: ToastStore) {
@@ -64,11 +64,7 @@ export class Core implements Disposable, Tickable {
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
 
-		// if (this.config.noHeartbeat) {
-		// 	this._heartbeatManager = null;
-		// } else {
-		// 	this._heartbeatManager = new HeartbeatManager(this);
-		// }
+		this._heartbeatManager = this.config.noHeartbeat ? null : new HeartbeatManager(this);
 
 		this.intervalPublisher = new IntervalPublisher(this);
 	}
@@ -118,8 +114,7 @@ export class Core implements Disposable, Tickable {
 		}
 
 		try {
-			// const res = await this._heartbeatManager!.sendConfig();
-            const res = true;
+			const res = await this._heartbeatManager!.sendConfig();
 
 			if (res) {
 				this.state.update((s) => ({ ...s, connection: 'connected' }));
@@ -139,7 +134,7 @@ export class Core implements Disposable, Tickable {
 	}
 
 	dispose() {
-		// this._heartbeatManager?.dispose();
+		this._heartbeatManager?.dispose();
 		this.intervalPublisher.dispose();
 	}
 }
