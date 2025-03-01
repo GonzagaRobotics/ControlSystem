@@ -8,8 +8,6 @@
 
 	const core = getContext<Core>('core');
 	const gamepadConnected = core.input.gamepadConnected;
-
-	$: core.sendToast('info', $gamepadConnected ? 'Gamepad Connected' : 'Gamepad Disconnected');
 </script>
 
 {#key $gamepadConnected}

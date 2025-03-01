@@ -1,4 +1,4 @@
-import type { Tickable } from '$lib/core/core';
+import type { Core, Tickable } from '$lib/core/core';
 import { derived, writable, type Readable, type Writable } from 'svelte/store';
 import { GamepadManager } from './gamepadManager';
 
@@ -67,7 +67,7 @@ export class InputSystem implements Tickable {
 	private _internalButtonStores: Map<Button, Writable<boolean>> = new Map();
 	private _internalAxisStores: Map<Axis, Writable<number>> = new Map();
 
-	constructor() {
+	constructor(core: Core) {
 		// Prepare writable stores for each button and axis
 		for (const button of Object.keys(defaultGamepadState.buttons) as Button[]) {
 			this._internalButtonStores.set(button, writable(false));
@@ -77,7 +77,7 @@ export class InputSystem implements Tickable {
 			this._internalAxisStores.set(axis, writable(0));
 		}
 
-		this._gamepadManager = new GamepadManager();
+		this._gamepadManager = new GamepadManager(core);
 
 		this._gamepadManager.gamepad.subscribe((gamepad) => {
 			if (gamepad === null) {

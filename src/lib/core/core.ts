@@ -60,7 +60,7 @@ export class Core implements Disposable, Tickable {
 	constructor(config: Config, toastStore: ToastStore) {
 		this.config = config;
 		this._toastStore = toastStore;
-		this.input = new InputSystem();
+		this.input = new InputSystem(this);
 		this.state = writable({ connection: 'disconnected' });
 		this.ros = new Ros(this);
 
