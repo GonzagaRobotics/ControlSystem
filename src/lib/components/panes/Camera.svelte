@@ -12,15 +12,7 @@
 	let video: HTMLVideoElement;
 
 	let socket = new WebSocket(`ws://${core.config.rtcSignalingUrl}/control`);
-	let pc = new RTCPeerConnection({
-		iceServers: [
-			{
-				urls: 'turn:openrelay.metered.ca:80',
-				username: 'openrelayproject',
-				credential: 'openrelayproject'
-			}
-		]
-	});
+	let pc = new RTCPeerConnection({ iceServers: [] });
 	const polite = false;
 
 	pc.onconnectionstatechange = (event) => {
@@ -53,11 +45,7 @@
 		};
 
 		pc.onicecandidate = (event) => {
-			console.log('THIS SHOULD HAPPEN', event);
 			if (event.candidate) {
-				console.log('after if');
-				console.log('Sending candidate');
-
 				socket.send(JSON.stringify({ candidate: event.candidate }));
 			}
 		};

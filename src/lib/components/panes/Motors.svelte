@@ -11,10 +11,6 @@
 
 	type Vector3 = { x: number; y: number; z: number };
 
-	function clamp(value: number, min: number, max: number): number {
-		return Math.min(Math.max(value, min), max);
-	}
-
 	const core = getContext<Core>('core');
 	const tabAttributes = getContext<Readable<string[]>>('tabAttributes');
 	$: readonly = $tabAttributes.includes('motors_readonly');
@@ -24,15 +20,11 @@
 	const forwardAxis = core.input.registerAxisInput('LY');
 	const turnAxis = core.input.registerAxisInput('LX');
 
-
-	$: driveTopic.publish({ x: $forwardAxis, y: $turnAxis * 0.75, z: 0 });
-
-
-	// $: {
-	// 	if (!readonly) {
-	// 		driveTopic.publish({ x: $forwardAxis, y: $turnAxis, z: 0 });
-	// 	}
-	// }
+	$: {
+		if (!readonly) {
+			driveTopic.publish({ x: $forwardAxis, y: $turnAxis * 0.75, z: 0 });
+		}
+	}
 </script>
 
 <Pane {id} {start} {size} containerClasses="flex flex-col justify-end items-center">
