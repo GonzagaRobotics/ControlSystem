@@ -4,10 +4,15 @@
 	import type { Readable } from 'svelte/store';
 	import { Core } from '$lib/core/core';
 	import { Topic } from '$lib/comm/topic';
+	import type { AxisInputOptions } from '$lib/input/inputSystem';
 
 	export let id: string;
 	export let start: { x: number; y: number };
 	export let size: { x: number; y: number };
+
+	const baseAxisOptions: AxisInputOptions = {
+		curve: 1.5
+	};
 
 	type Vector3 = { x: number; y: number; z: number };
 
@@ -17,8 +22,8 @@
 
 	const driveTopic = new Topic<Vector3>(core.ros, '/drive_system/drive', 'geometry_msgs/Vector3');
 
-	const forwardAxis = core.input.registerAxisInput('LY');
-	const turnAxis = core.input.registerAxisInput('LX');
+	const forwardAxis = core.input.registerAxisInput('LY', baseAxisOptions);
+	const turnAxis = core.input.registerAxisInput('LX', baseAxisOptions);
 
 	$: {
 		if (!readonly) {

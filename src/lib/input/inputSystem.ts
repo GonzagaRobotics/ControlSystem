@@ -58,6 +58,32 @@ const defaultGamepadState: GamepadState = {
 	}
 };
 
+/**
+ * Options for configuring axis input.
+ */
+export type AxisInputOptions = {
+	/**
+	 * The curvature applied to an axis input. Must be greater than 0.
+	 * @default 1
+	 */
+	curve?: number;
+	/**
+	 * The deadzone applied to an axis input. Must be in range [0, 1].
+	 * Note that the deadzone is applied before the curve.
+	 * @default 0.1
+	 */
+	deadzone?: number;
+	/**
+	 * Whether the axis input is inverted.
+	 * @default false
+	 */
+	inverted?: boolean;
+};
+
+/**
+ * The InputSystem is responsible for managing connected gamepads and providing
+ * convenient methods for working with them.
+ */
 export class InputSystem implements Tickable {
 	private readonly _gamepadManager: GamepadManager;
 
@@ -94,30 +120,58 @@ export class InputSystem implements Tickable {
 		return derived(this._gamepadManager.gamepad, (gamepad) => gamepad != null);
 	}
 
+	/**
+	 * Returns a store that can be used to get input from the specified button.
+	 * @param button The button for which to register input.
+	 */
 	registerButtonInput(button: Button): Readable<boolean> {
 		return { subscribe: this._internalButtonStores.get(button)!.subscribe };
 	}
 
-	registerAxisInput(axis: Axis, curve = 1, deadzone = 0.1, inverted = false): Readable<number> {
-		return derived(this._internalAxisStores.get(axis)!, (axis) => {
+	/**
+	 * Returns a store that can be used to get input from the specified axis.
+	 * @param axis The axis for which to register input.
+	 * @param options Options for configuring the axis input.
+	 */
+	registerAxisInput(axis: Axis, options?: AxisInputOptions): Readable<number> {
+		// Set and validate options
+		const curve = options?.curve ?? 1;
+		if (curve <= 0) {
+			throw new Error('Curve must be greater than 0.');
+		}
+
+		const deadzone = options?.deadzone ?? 0.1;
+		if (deadzone < 0 || deadzone > 1) {
+			throw new Error('Deadzone must be in range [0, 1].');
+		}
+
+		const inverted = options?.inverted ?? false;
+
+		return derived(this._internalAxisStores.get(axis)!, (input) => {
 			// Apply deadzone
-			if (Math.abs(axis) < deadzone) {
+			if (Math.abs(input) < deadzone) {
 				return 0;
 			}
 
 			// Apply curve
-			axis = Math.sign(axis) * Math.pow(Math.abs(axis), curve);
+			input = Math.sign(input) * Math.pow(Math.abs(input), curve);
 
 			// Apply inversion
 			if (inverted) {
-				axis = -axis;
+				input = -input;
 			}
 
-			return axis;
+			return input;
 		});
 	}
 
-	rumbleGamepad(duration: number, strongMagnitude: number, weakMagnitude: number): void {
+	/**
+	 * Triggers a rumble effect on the current gamepad.
+	 * @param duration The duration of the rumble effect in milliseconds.
+	 * @param strongMagnitude The strength of the strong rumble motor in range [0, 1].
+	 * @param weakMagnitude The strength of the weak rumble motor in range [0, 1].
+	 */
+	rumbleGamepad(duration: number, strongMagnitude?: number, weakMagnitude?: number): void {
 		if (this._currentGamepadIndex === -1) {
 			return;
 		}
