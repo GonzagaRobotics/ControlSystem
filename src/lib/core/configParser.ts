@@ -12,8 +12,8 @@ export type Config = {
 	rtcSignalingUrl: string;
 	fakeConnect: boolean;
 	noHeartbeat: boolean;
-	heartbeat: HeartbeatConfig;
 	publishRate: number;
+	heartbeat: HeartbeatConfig;
 	panes: {
 		id: string;
 		name: string;
@@ -31,11 +31,15 @@ export type Config = {
 };
 
 export class ConfigParser {
-	static parseConfig(configText: string): Config {
-		const raw = JSON5.parse(configText);
+	static parseConfig(configCoreText: string, configMainText: string): Config {
+		const rawCore = JSON5.parse(configCoreText);
+		const rawMain = JSON5.parse(configMainText);
 
 		// TODO: Validate the config file
 
-		return raw as Config;
+		return {
+			...rawCore,
+			...rawMain
+		} as unknown as Config;
 	}
 }

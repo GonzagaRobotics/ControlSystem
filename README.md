@@ -33,9 +33,11 @@ Building for deployment has not been tested yet.
 
 ## Configuration
 
-ControlSystem uses a configuration file for its runtime settings. You may modify the file while the server is running, but you must refresh the page for them to take effect.
+ControlSystem uses two configuration files for its runtime settings. You may modify the files while the server is running, but you must refresh the page for them to take effect.
 
-This file is located at `static/config.json5`. You can copy the `config.starter.json5` file to `config.json5` and modify it to your needs.
+These files are located at `static` directory. They are named `config_core.json5` and `config_main.json5`. The former is for core settings that often change from system to system and is ignored by git. The latter is for settings that change less often and is included in git.
+
+Each config file has a "starter" config file that you can copy and modify.
 
 ### Base Options
 
@@ -43,7 +45,7 @@ This file is located at `static/config.json5`. You can copy the `config.starter.
 - `rtcSignalingUrl` - The URL to the Camera System's signaling server. Include the hostname and port, but not the protocol.
 - `fakeConnect` - If `true`, the system will not attempt to connect to the rosbridge server. It will pretend to be connected and fake data will be used if defined. Meant for testing.
 - `noHeartbeat` - If `true`, the system will not undergo its normal heartbeat configuration and no heartbeats will be sent, nor will the system check for them. Meant for testing when you want to use ROS without having to use CoreSystem.
-- `publishRate` - The rate at which the Interval Publisher will publish data in Hz. Note that not all publishers go through the Interval Publisher, and that too low of a rate may cause unnacceptable input latency.
+- `publishRate` - The rate at which the Interval Publisher will publish data in Hz. Note that not all publishers go through the Interval Publisher, and that too low of a rate may cause unacceptable input latency.
 
 ### Heartbeat Options
 

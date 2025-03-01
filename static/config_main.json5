@@ -1,15 +1,11 @@
 {
-	roslibUrl: 'localhost:9090',
-	fakeConnect: false,
-	noHeartbeat: false,
-	rtcSignalingUrl: 'localhost:8080',
+	publishRate: 10,
 	heartbeat: {
 		heartbeatInterval: 1000,
 		heartbeatCheckInterval: 500,
 		heartbeatTimeout: 5000,
 		heartbeatTimeoutLimit: 3
 	},
-	publishRate: 10,
 	panes: [
 		{ id: 'camera', name: 'Camera' },
 		{ id: 'motors', name: 'Motors' },
