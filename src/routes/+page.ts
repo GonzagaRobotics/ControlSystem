@@ -7,7 +7,10 @@ export const load: PageLoad = async ({ fetch }) => {
 	const configMainFile = await fetch('/config_main.json5');
 
 	if (!configCoreFile.ok) {
-		error(404, 'Failed to load config core file: ' + configCoreFile.statusText);
+		error(
+			404,
+			`Failed to load config core file (${configCoreFile.statusText}). You likely didn't copy the starter file. Check the README.`
+		);
 	}
 
 	if (!configMainFile.ok) {
