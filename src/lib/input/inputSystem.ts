@@ -209,26 +209,26 @@ export class InputSystem implements Tickable {
 				Y: gamepad.buttons[3].value,
 				LB: gamepad.buttons[4].value,
 				RB: gamepad.buttons[5].value,
-				LT: gamepad.buttons[6].value,
-				RT: gamepad.buttons[7].value,
-				Back: gamepad.buttons[8].value,
-				Start: gamepad.buttons[9].value,
-				LS: gamepad.buttons[10].value,
-				RS: gamepad.buttons[11].value,
-				Up: gamepad.buttons[12].value,
-				Down: gamepad.buttons[13].value,
-				Left: gamepad.buttons[14].value,
-				Right: gamepad.buttons[15].value,
-				Center: gamepad.buttons[16].value
+				LT: gamepad.axes[2],
+				RT: gamepad.axes[5],
+				Back: gamepad.buttons[6].value,
+				Start: gamepad.buttons[7].value,
+				LS: gamepad.buttons[9].value,
+				RS: gamepad.buttons[10].value,
+				Up: Math.max(gamepad.axes[7], 0),
+				Down: Math.min(gamepad.axes[7], 0),
+				Left: Math.max(gamepad.axes[6], 0),
+				Right: Math.min(gamepad.axes[6], 0),
+				Center: gamepad.buttons[8].value
 			},
 			axes: {
 				// Invert joystick axes so that positive is up and left
 				LX: gamepad.axes[0] * -1,
 				LY: gamepad.axes[1] * -1,
-				RX: gamepad.axes[2] * -1,
-				RY: gamepad.axes[3] * -1,
-				LT: gamepad.buttons[6].value,
-				RT: gamepad.buttons[7].value
+				RX: gamepad.axes[3] * -1,
+				RY: gamepad.axes[4] * -1,
+				LT: gamepad.axes[2],
+				RT: gamepad.axes[5]
 			}
 		};
 
