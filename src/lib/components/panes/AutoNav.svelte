@@ -12,12 +12,19 @@
 		type InstructionMsg,
 		type PlanMsg
 	} from './AutoNav';
+	import { Service } from '$lib/comm/service';
 
 	export let id: string;
 	export let start: { x: number; y: number };
 	export let size: { x: number; y: number };
 
 	const core = getContext<Core>('core');
+
+	const queryStateService = new Service<null, StateMsg>(
+		core.ros,
+		'auto_nav/query_state',
+		'auto_nav_interfaces/QueryState'
+	);
 
 	const stateTopic = new Topic<StateMsg>(core.ros, 'auto_nav/state', 'auto_nav_interfaces/State');
 	const enableTopic = new Topic<{ data: boolean }>(core.ros, 'auto_nav/enable', 'std_msgs/Bool');
@@ -26,78 +33,53 @@
 		'auto_nav/instruction',
 		'auto_nav_interfaces/Instruction'
 	);
-	const targetTopic = new Topic<TargetMsg>(
-		core.ros,
-		'auto_nav/target',
-		'auto_nav_interfaces/Target'
-	);
-	const planTopic = new Topic<PlanMsg>(core.ros, 'auto_nav/plan', 'auto_nav_interfaces/Plan');
 
-	const stateSub = stateTopic.subscribe();
-	const planSub = planTopic.subscribe();
-	$: state = $stateSub?.state ?? State.DISABLED;
+	$: queriedState = false;
+	$: state = State.DISABLED;
 
-	$: canPause =
-		state == State.TRAVELING || state == State.TERMINAL_MOVING || state == State.TERMINAL_SEARCHING;
-	$: canResume = state == State.PAUSED;
-	$: canExecute = state == State.WAITING;
-	$: canTerminate = canPause || canResume || canExecute;
+	$: isMoving =
+		state === State.TRAVELING ||
+		state === State.TERMINAL_SEARCHING ||
+		state === State.TERMINAL_MOVING;
+	$: canPause = isMoving;
+	$: canResume = state === State.PAUSED;
+	$: canExecute = state === State.WAITING;
+	$: canTerminate =
+		canPause || canResume || canExecute || state === State.SUCCESS || state === State.FAILURE;
 
-	function onTargetSubmit(event: Event) {
-		// Get form data
-		const form = event.target as HTMLFormElement;
-		const formData = new FormData(form);
+	queryStateService.call(null, { state: State.DISABLED }).then((msg) => {
+		state = msg.state;
+		queriedState = true;
+	});
 
-		// Create target message
-		const target: TargetMsg = {
-			location: {
-				latitude: parseFloat(formData.get('lat')!.toString()),
-				longitude: parseFloat(formData.get('lon')!.toString())
-			},
-			type: parseInt(formData.get('type')!.toString())
-		};
+	stateTopic.subscribe().subscribe((msg) => {
+		if (msg) {
+			state = msg.state;
+		}
+	});
 
-		targetTopic.publish(target);
-	}
-
-	function onEnableDisable() {
+	function enableDisable() {
 		enableTopic.publish({ data: state === State.DISABLED });
 	}
 
-	function onPause() {
-		instructionTopic.publish({ instruction: Instruction.PAUSE });
-	}
-
-	function onResume() {
-		instructionTopic.publish({ instruction: Instruction.RESUME });
-	}
-
-	function onExecute() {
-		instructionTopic.publish({ instruction: Instruction.EXECUTE });
-	}
-
-	function onTerminate() {
-		instructionTopic.publish({ instruction: Instruction.TERMINATE });
+	function instruct(instruction: Instruction) {
+		instructionTopic.publish({ instruction });
 	}
 </script>
 
-<Pane {id} {start} {size} containerClasses="grid grid-cols-3">
+<Pane {id} {start} {size} containerClasses="grid grid-cols-3" loading={!queriedState}>
 	<svelte:fragment slot="main">
 		<div class="flex flex-col items-center">
 			<h4 class="h4 text-center">Status</h4>
 
 			<p class="text-lg">State: {stateToString(state)}</p>
-			{#if $planSub}
-				<p class="text-lg">Current Plan: {$planSub.waypoints.length} Waypoints</p>
-			{:else}
-				<p class="text-lg">Current Plan: None</p>
-			{/if}
+			<p class="text-lg">Current Plan: None</p>
 
 			<button
 				class="w-3/4 mt-2 btn btn-lg variant-filled-{state === State.DISABLED
 					? 'primary'
 					: 'warning'}"
-				on:click={onEnableDisable}
+				on:click={enableDisable}
 			>
 				{state === State.DISABLED ? 'Enable' : 'Disable'}
 			</button>
@@ -106,7 +88,7 @@
 		<div class="">
 			<h4 class="h4 text-center">Pathfind</h4>
 
-			<form on:submit|preventDefault={onTargetSubmit}>
+			<form>
 				<label class="label mb-2">
 					<span>Latitude</span>
 					<input
@@ -146,7 +128,7 @@
 				</label>
 
 				<button
-					disabled={state === State.DISABLED}
+					disabled={state != State.READY}
 					type="submit"
 					class="w-full btn btn-md variant-filled-primary"
 				>
@@ -159,25 +141,37 @@
 			<h4 class="mb-4 h4 text-center">Navigate</h4>
 
 			{#if canPause}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-primary" on:click={onPause}>
+				<button
+					class="w-3/4 mb-2 btn btn-lg variant-filled-primary"
+					on:click={() => instruct(Instruction.PAUSE)}
+				>
 					Pause
 				</button>
 			{/if}
 
 			{#if canResume}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-primary" on:click={onResume}>
+				<button
+					class="w-3/4 mb-2 btn btn-lg variant-filled-primary"
+					on:click={() => instruct(Instruction.RESUME)}
+				>
 					Resume
 				</button>
 			{/if}
 
 			{#if canExecute}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-success" on:click={onExecute}>
+				<button
+					class="w-3/4 mb-2 btn btn-lg variant-filled-success"
+					on:click={() => instruct(Instruction.EXECUTE)}
+				>
 					Execute
 				</button>
 			{/if}
 
 			{#if canTerminate}
-				<button class="w-3/4 mb-2 btn btn-lg variant-filled-error" on:click={onTerminate}>
+				<button
+					class="w-3/4 mb-2 btn btn-lg variant-filled-error"
+					on:click={() => instruct(Instruction.TERMINATE)}
+				>
 					Terminate
 				</button>
 			{/if}
