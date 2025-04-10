@@ -75,6 +75,11 @@ export type PlanMsg = {
 	}[];
 };
 
+export type QueryServiceResponse = {
+	state: State;
+	plan: PlanMsg;
+};
+
 export function stateToString(state: State): string {
 	switch (state) {
 		case State.DISABLED:

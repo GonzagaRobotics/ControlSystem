@@ -10,7 +10,8 @@
 		type StateMsg,
 		type TargetMsg,
 		type InstructionMsg,
-		type PlanMsg
+		type PlanMsg,
+		type QueryServiceResponse
 	} from './AutoNav';
 	import { Service } from '$lib/comm/service';
 
@@ -20,7 +21,7 @@
 
 	const core = getContext<Core>('core');
 
-	const queryStateService = new Service<null, StateMsg>(
+	const queryStateService = new Service<null, QueryServiceResponse>(
 		core.ros,
 		'auto_nav/query_state',
 		'auto_nav_interfaces/QueryState'
@@ -34,8 +35,23 @@
 		'auto_nav_interfaces/Instruction'
 	);
 
+	const targetTopic = new Topic<TargetMsg>(
+		core.ros,
+		'auto_nav/target',
+		'auto_nav_interfaces/Target'
+	);
+	const planTopic = new Topic<PlanMsg>(core.ros, 'auto_nav/plan', 'auto_nav_interfaces/Plan');
+	planTopic.subscribe().subscribe((msg) => {
+		if (msg) {
+			plan = msg;
+		} else {
+			plan = { waypoints: [] };
+		}
+	});
+
 	$: queriedState = false;
 	$: state = State.DISABLED;
+	$: plan = { waypoints: [] } as PlanMsg;
 
 	$: isMoving =
 		state === State.TRAVELING ||
@@ -47,8 +63,9 @@
 	$: canTerminate =
 		canPause || canResume || canExecute || state === State.SUCCESS || state === State.FAILURE;
 
-	queryStateService.call(null, { state: State.DISABLED }).then((msg) => {
+	queryStateService.call(null, { state: State.DISABLED, plan: { waypoints: [] } }).then((msg) => {
 		state = msg.state;
+		plan = msg.plan;
 		queriedState = true;
 	});
 
@@ -65,6 +82,23 @@
 	function instruct(instruction: Instruction) {
 		instructionTopic.publish({ instruction });
 	}
+
+	function onTargetSubmit(event: Event) {
+		// Get form data
+		const form = event.target as HTMLFormElement;
+		const formData = new FormData(form);
+
+		// Create target message
+		const target: TargetMsg = {
+			location: {
+				latitude: parseFloat(formData.get('lat')!.toString()),
+				longitude: parseFloat(formData.get('lon')!.toString())
+			},
+			type: parseInt(formData.get('type')!.toString())
+		};
+
+		targetTopic.publish(target);
+	}
 </script>
 
 <Pane {id} {start} {size} containerClasses="grid grid-cols-3" loading={!queriedState}>
@@ -73,7 +107,7 @@
 			<h4 class="h4 text-center">Status</h4>
 
 			<p class="text-lg">State: {stateToString(state)}</p>
-			<p class="text-lg">Current Plan: None</p>
+			<p class="text-lg">Current Plan: {plan.waypoints.length || 'No'} waypoints</p>
 
 			<button
 				class="w-3/4 mt-2 btn btn-lg variant-filled-{state === State.DISABLED
@@ -88,7 +122,7 @@
 		<div class="">
 			<h4 class="h4 text-center">Pathfind</h4>
 
-			<form>
+			<form on:submit|preventDefault={onTargetSubmit}>
 				<label class="label mb-2">
 					<span>Latitude</span>
 					<input
@@ -128,7 +162,7 @@
 				</label>
 
 				<button
-					disabled={state != State.READY}
+					disabled={state != State.READY && state != State.PLANNING}
 					type="submit"
 					class="w-full btn btn-md variant-filled-primary"
 				>
