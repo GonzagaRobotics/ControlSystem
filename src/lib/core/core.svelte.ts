@@ -49,7 +49,7 @@ export const ROVER_SOURCE_NAME = 'rover';
 
 export class Core implements Disposable, Tickable {
 	readonly config: Config;
-	readonly state: State;
+	readonly state = $state<State>({ connection: 'disconnected' });
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
@@ -61,7 +61,6 @@ export class Core implements Disposable, Tickable {
 		this.config = config;
 		this._toaster = toaster;
 		this.input = new InputSystem(this);
-		this.state = $state<State>({ connection: 'disconnected' });
 		this.ros = new Ros(this);
 
 		this._heartbeatManager = this.config.noHeartbeat ? null : new HeartbeatManager(this);
@@ -85,7 +84,7 @@ export class Core implements Disposable, Tickable {
 
 		this._toaster.create({
 			type,
-			message,
+			title: message,
 			timeout: calculateDuration(type),
 			closable: type == 'error'
 		});
