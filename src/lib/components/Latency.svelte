@@ -9,16 +9,14 @@
 
 	let latencyHistory = $state(Array<number>());
 
-	$effect(() => {
-		if (core.state.latency == undefined) return;
+	core.state.subscribe((state) => {
+		if (state.latency == undefined) return;
 
-		latencyHistory.push(core.state.latency);
+		latencyHistory.push(state.latency);
 
-		untrack(() => {
-			if (latencyHistory.length > 5) {
-				latencyHistory.shift();
-			}
-		});
+		if (latencyHistory.length > 5) {
+			latencyHistory.shift();
+		}
 	});
 
 	let rollingLatency = $derived.by(() => {
@@ -26,8 +24,6 @@
 
 		return latencyHistory.reduce((a, b) => a + b, 0) / latencyHistory.length;
 	});
-
-	// $: _heartbeatClasses = $state.connection == 'connected' ? 'animate-heartbeat' : '';
 
 	let _textClasses = $derived(
 		rollingLatency > core.config.heartbeat.heartbeatInterval ? 'text-warning-500' : ''
@@ -54,13 +50,13 @@
 	<HeartPulse size="2.5rem" />
 
 	{#key rollingLatency}
-		<p class="h3 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
+		<p class="h4 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
 			{formatNumber(rollingLatency)}
 		</p>
 	{/key}
 
 	{#key formatUnit(rollingLatency)}
-		<p class="h3 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
+		<p class="h4 {_textClasses}" in:scale={{ duration: 500, start: 0.85, easing: backOut }}>
 			{formatUnit(rollingLatency)}
 		</p>
 	{/key}

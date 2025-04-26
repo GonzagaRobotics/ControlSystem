@@ -36,7 +36,7 @@
 	</Tabs>
 
 	<div class="flex flex-row items-center justify-end gap-4">
-		<!-- <Latency /> -->
+		<Latency />
 		<Connection />
 		<Gamepad />
 	</div>
