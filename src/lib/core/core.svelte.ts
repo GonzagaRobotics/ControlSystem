@@ -2,8 +2,9 @@
 import { type Config } from './configParser';
 import { Ros } from '$lib/comm/ros.svelte';
 import { InputSystem } from '$lib/input/inputSystem';
-import { HeartbeatManager } from '$lib/comm/heartbeatManager';
+import { HeartbeatManager } from '$lib/comm/heartbeatManager.svelte';
 import { IntervalPublisher } from '$lib/comm/intervalPublisher';
+import { get, writable, type Writable } from 'svelte/store';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -49,7 +50,7 @@ export const ROVER_SOURCE_NAME = 'rover';
 
 export class Core implements Disposable, Tickable {
 	readonly config: Config;
-	readonly state = $state<State>({ connection: 'disconnected' });
+	readonly state: Writable<State>;
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
@@ -58,6 +59,7 @@ export class Core implements Disposable, Tickable {
 	private readonly _toaster: any;
 
 	constructor(config: Config, toaster: any) {
+		this.state = writable({ connection: 'disconnected' });
 		this.config = config;
 		this._toaster = toaster;
 		this.input = new InputSystem(this);
@@ -92,12 +94,12 @@ export class Core implements Disposable, Tickable {
 
 	async init() {
 		// Wait for the roslib connection to be established
-		if (this.state.connection != 'roslibConnected') {
+		if (get(this.state).connection != 'roslibConnected') {
 			await new Promise<void>((resolve, reject) => {
-				$effect(() => {
-					if (this.state.connection == 'roslibConnected') {
+				this.state.subscribe((s) => {
+					if (s.connection == 'roslibConnected') {
 						resolve();
-					} else if (this.state.connection == 'failed') {
+					} else if (s.connection == 'failed') {
 						reject('ROS connection failed');
 					}
 				});
@@ -106,7 +108,7 @@ export class Core implements Disposable, Tickable {
 
 		// Wait for the heartbeat manager to be ready
 		if (this.config.noHeartbeat) {
-			this.state.connection = 'connected';
+			this.state.update((s) => ({ ...s, connection: 'connected' }));
 
 			return true;
 		}
@@ -115,12 +117,13 @@ export class Core implements Disposable, Tickable {
 			const res = await this._heartbeatManager!.sendConfig();
 
 			if (res) {
-				this.state.connection = 'connected';
+				this.state.update((s) => ({ ...s, connection: 'connected' }));
 
 				return true;
 			}
 		} catch (error) {
-			this.state.connection = 'failed';
+			this.state.update((s) => ({ ...s, connection: 'failed' }));
+
 			throw error;
 		}
 
