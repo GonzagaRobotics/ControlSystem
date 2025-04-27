@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { Core } from '$lib/core/core.svelte';
 	import { toaster } from '$lib/core/toaster';
 	import { setContext } from 'svelte';
+	import { paneList } from '$lib/components/panes/paneList';
 
 	const core = new Core(page.data.config, toaster);
 	setContext('core', core);
@@ -13,6 +15,30 @@
 	let tabAttributes = $derived(tabObj?.attributes ?? []);
 
 	setContext('tabAttributes', () => tabAttributes);
+
+	function getComponent(paneId: string) {
+		if (!(paneId in paneList)) {
+			return paneList.unknown;
+		}
+
+		return paneList[paneId as keyof typeof paneList];
+	}
+
+	beforeNavigate((nav) => {
+		if (nav.type == 'leave') {
+			// To prevent any issues with the components not being destroyed properly,
+			// we manually destroy them here so we can be sure any cleanup code is run
+			// before the core is disposed.
+
+			// for (const pane of paneComponents) {
+			// 	if (pane) {
+			// 		unmount(pane);
+			// 	}
+			// }
+
+			core.dispose();
+		}
+	});
 
 	let lastTickTimestamp: number | undefined;
 
@@ -40,14 +66,20 @@
 	</div>
 {/snippet}
 
-<main class="flex h-full flex-col p-2">
+<main class="flex h-full flex-col gap-2 p-2">
 	<TopBar bind:selectedTab />
 
 	<div class="grid h-full grid-cols-4 grid-rows-2 gap-2">
 		{#await core.init()}
 			{@render centeredText('Connecting...')}
 		{:then accepted}
-			{#if accepted}{:else}
+			{#if accepted}
+				{#each tabObj?.panes ?? [] as pane}
+					{@const PaneComponent = getComponent(pane.id)}
+
+					<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
+				{/each}
+			{:else}
 				{@render centeredText('The rover rejected the connection.')}
 			{/if}
 		{:catch error}
