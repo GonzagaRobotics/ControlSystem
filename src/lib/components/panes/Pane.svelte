@@ -1,15 +1,6 @@
 <script lang="ts">
 	import type { Core } from '$lib/core/core.svelte';
-	import { getContext } from 'svelte';
-
-	type PaneProps = {
-		id: string;
-		start: { x: number; y: number };
-		size: { x: number; y: number };
-		loading?: boolean;
-		containerClasses?: string;
-		children: any;
-	};
+	import { getContext, onMount } from 'svelte';
 
 	let { id, start, size, loading = false, containerClasses = '', children = undefined } = $props();
 
@@ -19,7 +10,7 @@
 	let _grid_col_classes = $derived(`${start.x + 1} / ${start.x + size.x + 1}`);
 	let _grid_row_classes = $derived(`${start.y + 1} / ${start.y + size.y + 1}`);
 
-	$effect(() => {
+	onMount(() => {
 		console.log(`${id} mounted`);
 
 		return () => {

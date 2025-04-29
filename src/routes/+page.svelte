@@ -16,6 +16,12 @@
 
 	setContext('tabAttributes', () => tabAttributes);
 
+	beforeNavigate((nav) => {
+		if (nav.type == 'leave') {
+			core.dispose();
+		}
+	});
+
 	function getComponent(paneId: string) {
 		if (!(paneId in paneList)) {
 			return paneList.unknown;
@@ -23,22 +29,6 @@
 
 		return paneList[paneId as keyof typeof paneList];
 	}
-
-	beforeNavigate((nav) => {
-		if (nav.type == 'leave') {
-			// To prevent any issues with the components not being destroyed properly,
-			// we manually destroy them here so we can be sure any cleanup code is run
-			// before the core is disposed.
-
-			// for (const pane of paneComponents) {
-			// 	if (pane) {
-			// 		unmount(pane);
-			// 	}
-			// }
-
-			core.dispose();
-		}
-	});
 
 	let lastTickTimestamp: number | undefined;
 
@@ -71,10 +61,10 @@
 
 	<div class="grid h-full grid-cols-4 grid-rows-2 gap-2">
 		{#await core.init()}
-			{@render centeredText('Connecting...')}
+			{@render centeredText('Connecting...')}``
 		{:then accepted}
 			{#if accepted}
-				{#each tabObj?.panes ?? [] as pane}
+				{#each tabObj?.panes ?? [] as pane (pane.id)}
 					{@const PaneComponent = getComponent(pane.id)}
 
 					<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
