@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Core } from '$lib/core/core';
+import type { Core } from '$lib/core/core.svelte';
 import * as ROSLIB from 'roslib';
 
 export class Ros {

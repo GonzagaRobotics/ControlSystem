@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { getContext, tick } from 'svelte';
-	import Pane from './Pane.svelte';
-	import type { Readable } from 'svelte/store';
-	import { Core } from '$lib/core/core';
 	import { Topic } from '$lib/comm/topic';
+	import { getContext } from 'svelte';
+	import Pane from './Pane.svelte';
+	import { Core } from '$lib/core/core.svelte';
 	import type { AxisInputOptions } from '$lib/input/inputSystem';
 
-	export let id: string;
-	export let start: { x: number; y: number };
-	export let size: { x: number; y: number };
+	let { id, start, size } = $props();
 
 	const baseAxisOptions: AxisInputOptions = {
 		curve: 1.5
@@ -17,31 +14,26 @@
 	type Vector3 = { x: number; y: number; z: number };
 
 	const core = getContext<Core>('core');
-	const tabAttributes = getContext<Readable<string[]>>('tabAttributes');
-	$: readonly = $tabAttributes.includes('motors_readonly');
+	const tabAttributes = getContext<() => string[]>('tabAttributes');
 
 	const driveTopic = new Topic<Vector3>(core.ros, '/drive_system/drive', 'geometry_msgs/Vector3');
 
 	const forwardAxis = core.input.registerAxisInput('LY', baseAxisOptions);
 	const turnAxis = core.input.registerAxisInput('LX', baseAxisOptions);
 
-	$: {
-		if (!readonly) {
+	let readonly = $derived(tabAttributes().includes('motors_readonly'));
+
+	$effect(() => {
+		if (readonly == false) {
 			driveTopic.publish({ x: $forwardAxis, y: $turnAxis * 0.75, z: 0 });
 		}
-	}
+	});
 </script>
 
-<Pane {id} {start} {size} containerClasses="flex flex-col justify-end items-center">
-	<svelte:fragment slot="main">
-		<div class="flex-grow flex flex-row justify-center items-center">
-			<!-- <p class="w-1/4 h3 text-right">{(left * 100).toFixed(0)}%</p> -->
-			<img class="w-1/2" src="/rover_top_filled.png" alt="" />
-			<!-- <p class="w-1/4 h3 text-left">{(right * 100).toFixed(0)}%</p> -->
-		</div>
-
-		{#if readonly}
-			<div class="text-warning-500 h4">No controller input will be sent.</div>
-		{/if}
-	</svelte:fragment>
+<Pane {id} {start} {size} containerClasses="flex flex-col justify-center items-center">
+	{#if readonly}
+		<h4 class="text-warning-500 h4">No controller input will be sent.</h4>
+	{:else}
+		<h4 class="h4">Controller input is active.</h4>
+	{/if}
 </Pane>

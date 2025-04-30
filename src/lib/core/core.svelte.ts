@@ -1,10 +1,10 @@
-import { get, writable, type Writable } from 'svelte/store';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type Config } from './configParser';
-import { Ros } from '$lib/comm/ros';
+import { Ros } from '$lib/comm/ros.svelte';
 import { InputSystem } from '$lib/input/inputSystem';
-import type { ToastStore } from '@skeletonlabs/skeleton';
-import { HeartbeatManager } from '$lib/comm/heartbeatManager';
+import { HeartbeatManager } from '$lib/comm/heartbeatManager.svelte';
 import { IntervalPublisher } from '$lib/comm/intervalPublisher';
+import { get, writable, type Writable } from 'svelte/store';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -54,14 +54,15 @@ export class Core implements Disposable, Tickable {
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
-	private readonly _heartbeatManager: HeartbeatManager | null;
-	private readonly _toastStore: ToastStore;
 
-	constructor(config: Config, toastStore: ToastStore) {
-		this.config = config;
-		this._toastStore = toastStore;
-		this.input = new InputSystem(this);
+	private readonly _heartbeatManager: HeartbeatManager | null;
+	private readonly _toaster: any;
+
+	constructor(config: Config, toaster: any) {
 		this.state = writable({ connection: 'disconnected' });
+		this.config = config;
+		this._toaster = toaster;
+		this.input = new InputSystem(this);
 		this.ros = new Ros(this);
 
 		this._heartbeatManager = this.config.noHeartbeat ? null : new HeartbeatManager(this);
@@ -83,12 +84,11 @@ export class Core implements Disposable, Tickable {
 			}
 		}
 
-		this._toastStore.trigger({
-			message,
+		this._toaster.create({
+			type,
+			title: message,
 			timeout: calculateDuration(type),
-			classes: `variant-filled-${type === 'info' ? 'secondary' : type}`,
-			hideDismiss: type != 'error',
-			autohide: type != 'error'
+			closable: type == 'error'
 		});
 	}
 
@@ -123,6 +123,7 @@ export class Core implements Disposable, Tickable {
 			}
 		} catch (error) {
 			this.state.update((s) => ({ ...s, connection: 'failed' }));
+
 			throw error;
 		}
 

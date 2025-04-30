@@ -1,4 +1,4 @@
-import { CONTROL_SOURCE_NAME } from '$lib/core/core';
+import { CONTROL_SOURCE_NAME } from '$lib/core/core.svelte';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 
 export class RTC {
@@ -109,44 +109,6 @@ export class RTC {
 		this.socket.onmessage = (ev) => {
 			this.onMessage(JSON.parse(ev.data));
 		};
-
-		// this.socket.onmessage = async (event) => {
-		// 	const message = JSON.parse(event.data);
-
-		// 	if (message.candidate) {
-		// 		console.log('Got candidate');
-
-		// 		await this.pc.addIceCandidate(message.candidate);
-		// 		return;
-		// 	} else if (message.type === 'close') {
-		// 		console.log('Closing connection');
-
-		// 		this.pc.close();
-		// 		// this.pc = new RTCPeerConnection({ iceServers: [] });
-		// 		return;
-		// 	}
-
-		// 	let ignoreOffer = false;
-
-		// 	const offerCollision =
-		// 		message.type === 'offer' && (this._makingOffer || this.pc.signalingState !== 'stable');
-
-		// 	ignoreOffer = !this.polite && offerCollision;
-		// 	if (ignoreOffer) {
-		// 		return;
-		// 	}
-
-		// 	await this.pc.setRemoteDescription(message);
-
-		// 	if (message.type === 'offer') {
-		// 		console.log('Got offer');
-
-		// 		await this.pc.setLocalDescription();
-		// 		this.socket.send(JSON.stringify(this.pc.localDescription));
-		// 	} else {
-		// 		console.log('Got answer');
-		// 	}
-		// };
 
 		this.socket.onclose = () => {
 			console.log('|Camera| WebSocket closed');

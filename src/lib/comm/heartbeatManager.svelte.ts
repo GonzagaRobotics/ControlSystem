@@ -1,8 +1,8 @@
-import { type Core, type Disposable } from '$lib/core/core';
-import { get } from 'svelte/store';
+import { type Core, type Disposable } from '$lib/core/core.svelte';
 import { Topic } from './topic';
 import { Service } from './service';
 import type { HeartbeatConfig } from '$lib/core/configParser';
+import { get } from 'svelte/store';
 
 export class HeartbeatManager implements Disposable {
 	private readonly _connectService: Service<HeartbeatConfig, { ready: boolean }>;

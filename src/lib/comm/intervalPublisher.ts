@@ -1,4 +1,4 @@
-import type { Core, Disposable } from '$lib/core/core';
+import type { Core, Disposable } from '$lib/core/core.svelte';
 import { writable, type Writable } from 'svelte/store';
 import { Topic } from './topic';
 

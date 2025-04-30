@@ -1,5 +1,5 @@
 import * as ROSLIB from 'roslib';
-import { Ros } from './ros';
+import { Ros } from './ros.svelte';
 import { writable, type Readable, type Writable } from 'svelte/store';
 
 export class Topic<T> {

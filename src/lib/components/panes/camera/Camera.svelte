@@ -1,34 +1,37 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
 	import Pane from '../Pane.svelte';
-	import EyeSettings from '~icons/mdi/eye-settings';
-	import { CONTROL_SOURCE_NAME, type Core } from '$lib/core/core';
+	import type { Core } from '$lib/core/core.svelte';
 	import { RTC } from './rtc';
-	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { Popover } from '@skeletonlabs/skeleton-svelte';
+	import { Video } from '@lucide/svelte';
 
-	export let id: string;
-	export let start: { x: number; y: number };
-	export let size: { x: number; y: number };
-
-	const selectSettings: PopupSettings = {
-		event: 'click',
-		placement: 'bottom-end',
-		target: 'sourceSelectPopup'
-	};
+	let { id, start, size } = $props();
 
 	const core = getContext<Core>('core');
 	const rtc = new RTC(`ws://${core.config.rtcSignalingUrl}`);
 
 	let video: HTMLVideoElement;
 
-	let sources = rtc.sources;
-	$: selectedSource = '';
+	const sources = rtc.sources;
+	let selectedSource = $state('');
 
-	$: {
-		if (selectedSource !== '') {
+	let selectOpen = $state(false);
+
+	$effect(() => {
+		if (selectedSource != '') {
 			rtc.connectToSource(selectedSource);
 		}
-	}
+	});
+
+	$effect(() => {
+		if ($sources.find((source) => source === selectedSource) || selectedSource == '') {
+			return;
+		}
+
+		selectedSource = '';
+		core.sendToast('warning', 'Your selected source is no longer available');
+	});
 
 	onMount(() => {
 		rtc.pc.subscribe((current) => {
@@ -39,52 +42,40 @@
 				video.srcObject = event.streams[0];
 			};
 		});
-
-		sources.subscribe((newSources) => {
-			if (newSources.find((source) => source === selectedSource) || selectedSource == '') {
-				return;
-			}
-
-			selectedSource = '';
-			core.sendToast('warning', 'Your selected source is no longer available');
-		});
 	});
 </script>
 
-<Pane {id} {start} {size} containerClasses="">
-	<svelte:fragment slot="main">
-		<!-- Source selection button -->
-		<button
-			class="relative float-right m-2"
-			class:animate-pulse={selectedSource === ''}
-			use:popup={selectSettings}
-		>
-			<EyeSettings class="size-7" />
-		</button>
+<Pane {id} {start} {size}>
+	<Popover
+		open={selectOpen}
+		onOpenChange={(e) => (selectOpen = e.open)}
+		positioning={{ placement: 'bottom-end' }}
+		triggerBase="relative float-right mr-4"
+		triggerClasses={selectedSource === '' ? 'animate-pulse' : ''}
+		contentBase="card bg-surface-200-800 p-1"
+	>
+		{#snippet trigger()}
+			<Video size="2rem" />
+		{/snippet}
 
-		<!-- Source selection options popup -->
-		<div class="card p-4 variant-filled-surface" data-popup="sourceSelectPopup">
+		{#snippet content()}
 			<ul class="list">
 				{#each $sources as source}
 					<li>
 						<button
-							class="btn-sm hover:variant-filled-primary transition-all"
-							class:variant-filled-secondary={selectedSource === source}
-							on:click={() => {
-								selectedSource = source;
-							}}
+							class="btn-sm hover:preset-filled-primary-500 transition-all"
+							class:preset-filled-secondary-500={selectedSource === source}
+							onclick={() => (selectedSource = source)}
 						>
 							{source}
 						</button>
 					</li>
-				{/each}
-
-				{#if $sources.length === 0}
+				{:else}
 					<li>No sources found</li>
-				{/if}
+				{/each}
 			</ul>
-		</div>
+		{/snippet}
+	</Popover>
 
-		<video bind:this={video} class="" autoplay muted></video>
-	</svelte:fragment>
+	<video bind:this={video} autoplay muted></video>
 </Pane>

@@ -1,4 +1,4 @@
-import type { Core } from '$lib/core/core';
+import type { Core } from '$lib/core/core.svelte';
 import { get, writable, type Writable } from 'svelte/store';
 
 export class GamepadManager {

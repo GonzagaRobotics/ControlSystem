@@ -1,4 +1,4 @@
-import type { Core, Tickable } from '$lib/core/core';
+import type { Core, Tickable } from '$lib/core/core.svelte';
 import { derived, writable, type Readable, type Writable } from 'svelte/store';
 import { GamepadManager } from './gamepadManager';
 
