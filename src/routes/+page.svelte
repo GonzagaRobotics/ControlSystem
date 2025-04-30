@@ -4,8 +4,8 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { Core } from '$lib/core/core.svelte';
 	import { toaster } from '$lib/core/toaster';
-	import { setContext } from 'svelte';
-	import { paneList } from '$lib/components/panes/paneList';
+	import { mount, onMount, setContext, unmount } from 'svelte';
+	import MainWindow from '$lib/components/MainWindow.svelte';
 
 	const core = new Core(page.data.config, toaster);
 	setContext('core', core);
@@ -16,19 +16,15 @@
 
 	setContext('tabAttributes', () => tabAttributes);
 
+	let mainWindow: Record<string, any>;
+
 	beforeNavigate((nav) => {
 		if (nav.type == 'leave') {
+			unmount(mainWindow);
+
 			core.dispose();
 		}
 	});
-
-	function getComponent(paneId: string) {
-		if (!(paneId in paneList)) {
-			return paneList.unknown;
-		}
-
-		return paneList[paneId as keyof typeof paneList];
-	}
 
 	let lastTickTimestamp: number | undefined;
 
@@ -45,35 +41,18 @@
 		requestAnimationFrame(tick);
 	}
 
-	$effect(() => {
+	onMount(() => {
+		mainWindow = mount(MainWindow, {
+			target: document.querySelector('main')!,
+			props: {
+				tabObj: () => tabObj
+			}
+		});
+
 		requestAnimationFrame(tick);
 	});
 </script>
 
-{#snippet centeredText(text: string)}
-	<div class="col-span-4 row-span-2 flex items-center justify-center">
-		<h1 class="h1 text-center">{text}</h1>
-	</div>
-{/snippet}
-
 <main class="flex h-full flex-col gap-2 p-2">
 	<TopBar bind:selectedTab />
-
-	<div class="grid h-full grid-cols-4 grid-rows-2 gap-2">
-		{#await core.init()}
-			{@render centeredText('Connecting...')}``
-		{:then accepted}
-			{#if accepted}
-				{#each tabObj?.panes ?? [] as pane (pane.id)}
-					{@const PaneComponent = getComponent(pane.id)}
-
-					<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
-				{/each}
-			{:else}
-				{@render centeredText('The rover rejected the connection.')}
-			{/if}
-		{:catch error}
-			{@render centeredText(error)}
-		{/await}
-	</div>
 </main>
