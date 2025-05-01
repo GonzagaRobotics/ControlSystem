@@ -54,14 +54,14 @@
 	}
 
 	onMount(() => {
+		requestAnimationFrame(tick);
+
 		mainWindow = mount(MainWindow, {
 			target: document.querySelector('main')!,
 			props: {
 				tabObj: () => tabObj
 			}
 		});
-
-		requestAnimationFrame(tick);
 	});
 </script>
 

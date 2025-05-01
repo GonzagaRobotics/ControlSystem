@@ -43,12 +43,6 @@ export class ConfigParser {
 			...rawMain
 		} as unknown as Config;
 
-		// For some reason, Svelte freaks out if both fakeConnect and noHeartbeat are set to true,
-		// so we need to set noHeartbeat to false if fakeConnect is true
-		if (config.fakeConnect) {
-			config.noHeartbeat = false;
-		}
-
 		return config;
 	}
 }

@@ -2,7 +2,6 @@ import { type Core, type Disposable } from '$lib/core/core.svelte';
 import { Topic } from './topic';
 import { Service } from './service';
 import type { HeartbeatConfig } from '$lib/core/configParser';
-import { get } from 'svelte/store';
 
 export class HeartbeatManager implements Disposable {
 	private readonly _connectService: Service<HeartbeatConfig, { ready: boolean }>;
@@ -72,11 +71,12 @@ export class HeartbeatManager implements Disposable {
 		const latency = now.getTime() - sent.getTime();
 		this._timeoutCount = 0;
 
-		this._core.state.update((s) => ({ ...s, latency, connection: 'connected' }));
+		this._core.state.latency = latency;
+		this._core.state.connection = 'connected';
 	}
 
 	checkHearbeats() {
-		if (get(this._core.state).connection != 'connected' || this._lastHeartbeatTime == undefined) {
+		if (this._core.state.connection != 'connected' || this._lastHeartbeatTime == undefined) {
 			return;
 		}
 
@@ -96,7 +96,7 @@ export class HeartbeatManager implements Disposable {
 		}
 
 		if (this._timeoutCount >= this._core.config.heartbeat.heartbeatTimeoutLimit) {
-			this._core.state.update((s) => ({ ...s, connection: 'disconnected' }));
+			this._core.state.connection = 'disconnected';
 			this._core.sendToast('error', 'Too many heartbeats timed out.');
 		}
 	}

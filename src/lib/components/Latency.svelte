@@ -9,14 +9,16 @@
 
 	let latencyHistory = $state(Array<number>());
 
-	core.state.subscribe((state) => {
-		if (state.latency == undefined) return;
+	$effect(() => {
+		if (core.state.latency == undefined) return;
 
-		latencyHistory.push(state.latency);
+		untrack(() => {
+			latencyHistory.push(core.state.latency!);
 
-		if (latencyHistory.length > 5) {
-			latencyHistory.shift();
-		}
+			if (latencyHistory.length > 5) {
+				latencyHistory.shift();
+			}
+		});
 	});
 
 	let rollingLatency = $derived.by(() => {

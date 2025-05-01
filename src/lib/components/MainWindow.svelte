@@ -7,6 +7,17 @@
 
 	const core = getContext<Core>('core');
 
+	let status = $state<string>('');
+
+	core
+		.init()
+		.then((res) => {
+			status = res ? 'true' : 'false';
+		})
+		.catch(() => {
+			status = 'error';
+		});
+
 	function getComponent(paneId: string) {
 		if (!(paneId in paneList)) {
 			return paneList.unknown;
@@ -23,19 +34,17 @@
 {/snippet}
 
 <div class="grid h-full grid-cols-4 grid-rows-2 gap-2">
-	{#await core.init()}
-		{@render centeredText('Connecting...')}``
-	{:then accepted}
-		{#if accepted}
-			{#each tabObj()?.panes ?? [] as pane (pane.id)}
-				{@const PaneComponent = getComponent(pane.id)}
+	{#if status == ''}
+		{@render centeredText('Connecting...')}
+	{:else if status == 'true'}
+		{#each tabObj()?.panes ?? [] as pane (pane.id)}
+			{@const PaneComponent = getComponent(pane.id)}
 
-				<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
-			{/each}
-		{:else}
-			{@render centeredText('The rover rejected the connection.')}
-		{/if}
-	{:catch error}
-		{@render centeredText(error)}
-	{/await}
+			<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
+		{/each}
+	{:else if status == 'false'}
+		{@render centeredText('Rover refused connection.')}
+	{:else}
+		{@render centeredText('There was an error. Try checking the console.')}
+	{/if}
 </div>

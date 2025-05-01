@@ -7,7 +7,7 @@ export class Ros {
 
 	constructor(core: Core) {
 		if (core.config.fakeConnect) {
-			core.state.update((s) => ({ ...s, connection: 'roslibConnected' }));
+			core.state.connection = 'roslibConnected';
 			return;
 		}
 
@@ -18,11 +18,11 @@ export class Ros {
 		this.internal.on('connection', () => {
 			console.log('Connected to roslib');
 
-			core.state.update((s) => ({ ...s, connection: 'roslibConnected' }));
+			core.state.connection = 'roslibConnected';
 		});
 
 		this.internal.on('error', (error) => {
-			core.state.update((s) => ({ ...s, connection: 'failed' }));
+			core.state.connection = 'failed';
 			core.sendToast('error', 'ROSLIB error, see console');
 			console.error('ROSLIB error:', error);
 		});
@@ -30,12 +30,27 @@ export class Ros {
 		this.internal.on('close', () => {
 			console.log('Roslib connection closed');
 
-			core.state.update((s) => {
-				if (s.connection == 'failed') {
-					return s;
-				}
+			if (core.state.connection != 'failed') {
+				core.state.connection = 'disconnected';
+			}
+		});
+	}
 
-				return { ...s, connection: 'disconnected' };
+	async waitForConnection(): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			if (this.internal == null) {
+				reject('Roslib not initialized');
+				return;
+			}
+
+			this.internal.on('connection', () => {
+				console.log('resolving');
+
+				resolve();
+			});
+
+			this.internal.on('error', (error) => {
+				reject(error);
 			});
 		});
 	}
