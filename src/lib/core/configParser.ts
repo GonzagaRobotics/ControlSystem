@@ -12,6 +12,7 @@ export type Config = {
 	rtcSignalingUrl: string;
 	fakeConnect: boolean;
 	noHeartbeat: boolean;
+	defaultTab: string;
 	publishRate: number;
 	heartbeat: HeartbeatConfig;
 	panes: {

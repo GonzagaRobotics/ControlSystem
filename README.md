@@ -45,6 +45,7 @@ Each config file has a "starter" config file that you can copy and modify.
 - `rtcSignalingUrl` - The URL to the Camera System's signaling server. Include the hostname and port, but not the protocol.
 - `fakeConnect` - If `true`, the system will not attempt to connect to the rosbridge server. It will pretend to be connected and fake data will be used if defined. Meant for testing.
 - `noHeartbeat` - If `true`, the system will not undergo its normal heartbeat configuration and no heartbeats will be sent, nor will the system check for them. Meant for testing when you want to use ROS without having to use CoreSystem. If `fakeConnect` is also `true`, this has no effect.
+- `defaultTab` - The tab ID to use on startup. Leave empty to use the first tab in the list. If the tab ID is not found, the first tab will be used.
 - `publishRate` - The rate at which the Interval Publisher will publish data in Hz. Note that not all publishers go through the Interval Publisher, and that too low of a rate may cause unacceptable input latency.
 
 ### Heartbeat Options
@@ -68,8 +69,6 @@ Like panes, each tab is an object in the `tabs` array. Each tab has the followin
 - `id` - A unique identifier for the tab. Use snake_case.
 - `name` - Display name for the tab.
 - `attributes` - An array of strings defining attributes for the tab.
-
-The first tab in the array will be the default tab when ControlSystem starts. There is no way to change this at the moment.
 
 #### Tab Panes
 

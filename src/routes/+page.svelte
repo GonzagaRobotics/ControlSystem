@@ -10,7 +10,19 @@
 	const core = new Core(page.data.config, toaster);
 	setContext('core', core);
 
-	let selectedTab = $state(core.config.tabs.at(0)?.id ?? '');
+	function determineInitialTab(): string {
+		if (core.config.defaultTab) {
+			if (core.config.tabs.find((tab) => tab.id == core.config.defaultTab)) {
+				return core.config.defaultTab;
+			}
+
+			console.warn(`Default tab "${core.config.defaultTab}" not found.`);
+		}
+
+		return core.config.tabs.at(0)?.id ?? '';
+	}
+
+	let selectedTab = $state(determineInitialTab());
 	let tabObj = $derived(core.config.tabs.find((tab) => tab.id == selectedTab));
 	let tabAttributes = $derived(tabObj?.attributes ?? []);
 
