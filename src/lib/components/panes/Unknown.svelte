@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Pane from './Pane.svelte';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 </script>
 
-<Pane {id} {start} {size} containerClasses="flex items-center">
+<Pane name="Unknown" {start} size={{ x: 1, y: 1 }} containerClasses="flex items-center">
 	<h3 class="h3 text-center">
-		A pane '{id}' is supposed to be here, but a corresponding component could not be found.
+		A pane is supposed to be here, but its component could not be found.
 	</h3>
 </Pane>

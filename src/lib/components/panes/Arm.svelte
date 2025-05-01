@@ -5,7 +5,7 @@
 	import Pane from './Pane.svelte';
 	import { Topic } from '$lib/comm/topic';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 
 	const core = getContext<Core>('core');
 	const baseAxisOptions: AxisInputOptions = { curve: 1.75 };
@@ -40,7 +40,7 @@
 	});
 </script>
 
-<Pane {id} {start} {size} containerClasses="flex flex-col gap-2">
+<Pane name="Arm" {start} size={{ x: 1, y: 1 }} containerClasses="flex flex-col gap-2">
 	<label for="">
 		Require Button Press to Move
 		<input type="checkbox" bind:checked={requirePress} />

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Pane from './Pane.svelte';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 </script>
 
-<Pane {id} {start} {size}></Pane>
+<Pane name="GNSS" {start} size={{ x: 1, y: 1 }}></Pane>

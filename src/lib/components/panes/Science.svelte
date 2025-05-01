@@ -4,7 +4,7 @@
 	import { getContext } from 'svelte';
 	import Pane from './Pane.svelte';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 
 	const core = getContext<Core>('core');
 
@@ -41,7 +41,7 @@
 	});
 </script>
 
-<Pane {id} {start} {size}>
+<Pane name="Science" {start} size={{ x: 1, y: 1 }}>
 	<div>
 		<div>Auger Vertical Input: {$augerVerticalUp - $augerVerticalDown}</div>
 

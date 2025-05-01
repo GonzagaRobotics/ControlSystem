@@ -15,7 +15,7 @@
 	} from './autoNav';
 	import { Topic } from '$lib/comm/topic';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 
 	const core = getContext<Core>('core');
 
@@ -112,7 +112,13 @@
 	</button>
 {/snippet}
 
-<Pane {id} {start} {size} containerClasses="grid grid-cols-3" loading={!queriedState}>
+<Pane
+	name="Auto Nav"
+	{start}
+	size={{ x: 2, y: 1 }}
+	containerClasses="grid grid-cols-3"
+	loading={!queriedState}
+>
 	<div class="flex flex-col items-center">
 		<h4 class="h4 text-center">Status</h4>
 

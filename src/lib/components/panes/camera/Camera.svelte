@@ -6,7 +6,7 @@
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import { Video } from '@lucide/svelte';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 
 	const core = getContext<Core>('core');
 	const rtc = new RTC(`ws://${core.config.rtcSignalingUrl}`);
@@ -45,7 +45,7 @@
 	});
 </script>
 
-<Pane {id} {start} {size}>
+<Pane name="Camera" {start} size={{ x: 2, y: 1 }}>
 	<Popover
 		open={selectOpen}
 		onOpenChange={(e) => (selectOpen = e.open)}

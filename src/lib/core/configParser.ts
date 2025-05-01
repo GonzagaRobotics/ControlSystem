@@ -25,7 +25,6 @@ export type Config = {
 		panes: {
 			id: string;
 			position: { x: number; y: number };
-			size: { x: number; y: number };
 		}[];
 		attributes: string[];
 	}[];

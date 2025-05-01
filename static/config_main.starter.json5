@@ -6,12 +6,7 @@
 		heartbeatTimeout: 5000,
 		heartbeatTimeoutLimit: 3
 	},
-	panes: [
-		{
-			id: 'test',
-			name: 'Test'
-		}
-	],
+	panes: ['test'],
 	tabs: [
 		{
 			id: 'first',
@@ -19,8 +14,7 @@
 			panes: [
 				{
 					id: 'test',
-					position: { x: 0, y: 0 },
-					size: { x: 1, y: 1 }
+					position: { x: 0, y: 0 }
 				}
 			],
 			attributes: []

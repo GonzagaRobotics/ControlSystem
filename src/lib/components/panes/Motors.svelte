@@ -5,7 +5,7 @@
 	import { Core } from '$lib/core/core.svelte';
 	import type { AxisInputOptions } from '$lib/input/inputSystem';
 
-	let { id, start, size } = $props();
+	let { start } = $props();
 
 	const baseAxisOptions: AxisInputOptions = {
 		curve: 1.5
@@ -30,7 +30,12 @@
 	});
 </script>
 
-<Pane {id} {start} {size} containerClasses="flex flex-col justify-center items-center">
+<Pane
+	name="Motors"
+	{start}
+	size={{ x: 1, y: 1 }}
+	containerClasses="flex flex-col justify-center items-center"
+>
 	{#if readonly}
 		<h4 class="text-warning-500 h4">No controller input will be sent.</h4>
 	{:else}

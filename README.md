@@ -57,10 +57,7 @@ Each config file has a "starter" config file that you can copy and modify.
 
 ### Panes
 
-Each pane is an object in the `panes` array. Each pane has the following options:
-
-- `id` - A unique identifier for the pane. Use snake_case.
-- `name` - Display name for the pane.
+An array of strings that define the IDs of the panes that can be used. Must be unique. Use snake_case.
 
 ### Tabs
 
@@ -76,13 +73,10 @@ The tab has a `panes` array that contains the panes that are displayed in the ta
 
 - `pane` - The ID of the pane to display.
 - `position` - An object with `x` and `y` properties that define the position of the pane in the tab.
-- `size` - An object with `x` and `y` properties that define the size of the pane in the tab. Must be at least 1 by 1
 
 ## Notes
 
 The GUI is divided into a 4 by 2 grid. This is not configurable at this time. The position and size of panes are relative to this grid, with the top left corner being (0, 0) and the bottom right corner being (3, 1). Not respecting these limits, overlapping panes, or using decimal values will cause undefined behavior.
-
-Panes are meant to be flexible, but some may not work well if they are too small, too large, or if their aspect ratio is too different from what they were designed for. All panes will work in any position. It's up for the user to decide what works best for them.
 
 Attributes are a fairly loose concept. Panes are given a list of the active attributes, and it is up to each pane to decide what to do with them. Currently, the only attribute used by any pane is `motors_readonly`. The intent is to allow for tabs to modify the behavior of panes without having to create a new pane.
 

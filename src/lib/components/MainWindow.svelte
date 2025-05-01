@@ -40,7 +40,7 @@
 		{#each tabObj()?.panes ?? [] as pane (pane.id)}
 			{@const PaneComponent = getComponent(pane.id)}
 
-			<PaneComponent id={pane.id} start={pane.position} size={pane.size} />
+			<PaneComponent start={pane.position} />
 		{/each}
 	{:else if status == 'false'}
 		{@render centeredText('Rover refused connection.')}
