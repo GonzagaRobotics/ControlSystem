@@ -44,8 +44,6 @@ export class Ros {
 			}
 
 			this.internal.on('connection', () => {
-				console.log('resolving');
-
 				resolve();
 			});
 

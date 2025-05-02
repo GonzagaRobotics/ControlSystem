@@ -1,8 +1,31 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { getContext } from 'svelte';
 	import Pane from './Pane.svelte';
+	import { Core } from '$lib/core/core.svelte';
+	import { Topic } from '$lib/comm/topic';
+
+	type GNSS = {
+		// lat, long, alt
+		position: {
+			x: number;
+			y: number;
+			z: number;
+		};
+		// pitch, roll, yaw
+		rotation: {
+			x: number;
+			y: number;
+			z: number;
+		};
+		magHeading: number;
+	};
 
 	let { start } = $props();
+
+	const core = getContext<Core>('core');
+
+	const gnssTopic = new Topic<GNSS>(core.ros, 'gnss', 'gnss_interfaces/GNSS');
+	const gnss = gnssTopic.subscribe();
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
 	let ctx = $state<CanvasRenderingContext2D | null>(null);
@@ -10,8 +33,12 @@
 	let height = $state(0);
 
 	$effect(() => {
-		if (!canvas || !ctx) {
+		if (!canvas) {
 			return;
+		}
+
+		if (!ctx) {
+			ctx = canvas.getContext('2d')!;
 		}
 
 		canvas.width = width;
@@ -20,30 +47,26 @@
 		ctx.fillStyle = 'brown';
 		ctx.fillRect(0, 0, width, height);
 	});
-
-	onMount(() => {
-		const context = canvas!.getContext('2d');
-
-		if (context == null) {
-			console.error('Failed to get canvas context');
-
-			return;
-		}
-
-		ctx = context;
-	});
 </script>
 
 {#snippet dataText(text: string)}
-	<p class="text-center font-mono text-lg">{text}</p>
+	<p class="text-center font-mono">{text}</p>
 {/snippet}
 
-<Pane name="GNSS" {start} size={{ x: 1, y: 1 }} containerClasses="flex flex-col">
-	<div class="grid grid-cols-2 grid-rows-2">
-		{@render dataText('Lat: XX.XXXXXX°')}
-		{@render dataText('Lon: XX.XXXXXX°')}
-		{@render dataText('Alt: XXXX.XX m')}
-		{@render dataText('Mag: XXX.XX°')}
+<Pane
+	name="GNSS"
+	{start}
+	size={{ x: 1, y: 1 }}
+	containerClasses="flex flex-col"
+	loading={!core.config.fakeConnect && !$gnss}
+>
+	<div class="grid grid-cols-3 grid-rows-2">
+		{@render dataText(`Lat: ${$gnss?.position.x ?? 'XX.XXXXXX'}`)}
+		{@render dataText(`Lon: ${$gnss?.position.y ?? 'XX.XXXXX'}`)}
+		{@render dataText(`Alt: ${$gnss?.position.z ?? 'XXXX.XX'}`)}
+		{@render dataText(`Pitch: ${$gnss?.rotation.x ?? 'XX.XX'}`)}
+		{@render dataText(`Roll: ${$gnss?.rotation.y ?? 'XX.XX'}`)}
+		{@render dataText(`Mag: ${$gnss?.magHeading ?? 'XXX.XX'}`)}
 	</div>
 
 	<div class="h-full" bind:clientWidth={width} bind:clientHeight={height}>
