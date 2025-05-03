@@ -18,6 +18,9 @@
 
 	let selectOpen = $state(false);
 
+	let maxSize = $state([0, 0]);
+	let videoSize = $state([0, 0]);
+
 	$effect(() => {
 		if (selectedSource != '') {
 			rtc.connectToSource(selectedSource);
@@ -31,6 +34,27 @@
 
 		selectedSource = '';
 		core.sendToast('warning', 'Your selected source is no longer available');
+	});
+
+	$effect(() => {
+		if (!video) {
+			return;
+		}
+
+		if (videoSize[0] == 0 || videoSize[1] == 0) {
+			return;
+		}
+
+		const aspect = videoSize[0] / videoSize[1];
+
+		// Find the biggest width and height that fits the container
+		if (aspect > maxSize[0] / maxSize[1]) {
+			video.width = maxSize[0];
+			video.height = maxSize[0] / aspect;
+		} else {
+			video.width = maxSize[1] * aspect;
+			video.height = maxSize[1];
+		}
 	});
 
 	onMount(() => {
@@ -77,5 +101,14 @@
 		{/snippet}
 	</Popover>
 
-	<video bind:this={video} autoplay muted></video>
+	<div class="h-full" bind:clientWidth={maxSize[0]} bind:clientHeight={maxSize[1]}>
+		<video
+			bind:this={video}
+			autoplay
+			muted
+			class="absolute"
+			bind:videoWidth={videoSize[0]}
+			bind:videoHeight={videoSize[1]}
+		></video>
+	</div>
 </Pane>
