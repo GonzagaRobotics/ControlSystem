@@ -1,8 +1,16 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import Pane from './Pane.svelte';
 	import { Core } from '$lib/core/core.svelte';
 	import { Topic } from '$lib/comm/topic';
+	import { Map, View } from 'ol';
+	import { GeoTIFF, OSM } from 'ol/source';
+	import TileLayer from 'ol/layer/Tile';
+	import WebGLTileLayer from 'ol/layer/WebGLTile.js';
+	import { useGeographic } from 'ol/proj';
+	import proj4 from 'proj4';
+	import { register } from 'ol/proj/proj4';
+	import { MapPin } from '@lucide/svelte';
 
 	type GNSS = {
 		// lat, long, alt
@@ -27,25 +35,34 @@
 	const gnssTopic = new Topic<GNSS>(core.ros, 'gnss', 'gnss_interfaces/GNSS');
 	const gnss = gnssTopic.subscribe();
 
-	let canvas = $state<HTMLCanvasElement | null>(null);
-	let ctx = $state<CanvasRenderingContext2D | null>(null);
-	let width = $state(0);
-	let height = $state(0);
+	// Define the conversion between UTM 12N and WGS84
+	proj4.defs(
+		'EPSG:26912',
+		'+proj=utm +zone=12 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
+	);
 
-	$effect(() => {
-		if (!canvas) {
-			return;
-		}
+	register(proj4);
 
-		if (!ctx) {
-			ctx = canvas.getContext('2d')!;
-		}
+	// Needed for OpenLayers to work with lat/lon coordinates
+	useGeographic();
 
-		canvas.width = width;
-		canvas.height = height;
+	const source = new GeoTIFF({
+		sources: [
+			{
+				url: '/urc.tif'
+			}
+		]
+	});
 
-		ctx.fillStyle = 'brown';
-		ctx.fillRect(0, 0, width, height);
+	const layer = new WebGLTileLayer({ source });
+
+	const map = new Map({
+		layers: [layer],
+		view: source.getView()
+	});
+
+	onMount(() => {
+		map.setTarget('gnss-map');
 	});
 </script>
 
@@ -69,7 +86,5 @@
 		{@render dataText(`Mag: ${$gnss?.magHeading ?? 'XXX.XX'}`)}
 	</div>
 
-	<div class="h-full" bind:clientWidth={width} bind:clientHeight={height}>
-		<canvas bind:this={canvas}></canvas>
-	</div>
+	<div id="gnss-map" class="grow"></div>
 </Pane>
