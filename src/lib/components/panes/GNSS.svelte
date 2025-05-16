@@ -3,14 +3,12 @@
 	import Pane from './Pane.svelte';
 	import { Core } from '$lib/core/core.svelte';
 	import { Topic } from '$lib/comm/topic';
-	import { Map, View } from 'ol';
-	import { GeoTIFF, OSM } from 'ol/source';
-	import TileLayer from 'ol/layer/Tile';
+	import { Map } from 'ol';
+	import { GeoTIFF } from 'ol/source';
 	import WebGLTileLayer from 'ol/layer/WebGLTile.js';
 	import { useGeographic } from 'ol/proj';
 	import proj4 from 'proj4';
 	import { register } from 'ol/proj/proj4';
-	import { MapPin } from '@lucide/svelte';
 
 	type GNSS = {
 		// lat, long, alt
