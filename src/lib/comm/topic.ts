@@ -7,7 +7,7 @@ export class Topic<T> {
 	private readonly _internal: ROSLIB.Topic | null = null;
 	private readonly _lastSubMsg: Writable<T | undefined>;
 
-	constructor(ros: Ros, name: string, messageType: string) {
+	constructor(ros: Ros, name: string, messageType: string, fakeData?: T) {
 		if (ros.internal) {
 			this._internal = new ROSLIB.Topic({
 				ros: ros.internal,
@@ -18,7 +18,9 @@ export class Topic<T> {
 
 		this.messageType = messageType;
 
-		this._lastSubMsg = writable(undefined, (set) => {
+		const initialValue = !ros.internal && fakeData ? fakeData : undefined;
+
+		this._lastSubMsg = writable(initialValue, (set) => {
 			this._internal?.subscribe((message) => {
 				set(Ros.toJsStyle(message));
 			});
