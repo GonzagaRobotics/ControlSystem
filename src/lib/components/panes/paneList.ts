@@ -4,7 +4,7 @@ import Science from './Science.svelte';
 import Unknown from './Unknown.svelte';
 import Camera from './camera/Camera.svelte';
 import AutoNav from './auto/AutoNav.svelte';
-import GNSS from './GNSS.svelte';
+import GNSS from './gnss/GNSS.svelte';
 
 export const paneList = {
 	unknown: Unknown,
