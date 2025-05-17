@@ -1,4 +1,4 @@
-import * as ROSLIB from 'roslib';
+import ROSLIB from 'roslib';
 import { Ros } from './ros.svelte';
 
 export class Service<T, R> {

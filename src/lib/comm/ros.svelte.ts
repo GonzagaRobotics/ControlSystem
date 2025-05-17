@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Core } from '$lib/core/core.svelte';
-import * as ROSLIB from 'roslib';
+import ROSLIB from 'roslib';
 
 export class Ros {
 	readonly internal: ROSLIB.Ros | null = null;
