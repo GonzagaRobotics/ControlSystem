@@ -1,23 +1,20 @@
 <script lang="ts">
-	import { Core } from '$lib/core/core';
+	import { Core } from '$lib/core/core.svelte';
 	import { getContext } from 'svelte';
 	import { backOut } from 'svelte/easing';
 	import { scale } from 'svelte/transition';
-	import Controller from '~icons/mdi/microsoft-xbox-controller';
-	import NoController from '~icons/mdi/microsoft-xbox-controller-off';
+	import { Gamepad2 } from '@lucide/svelte';
 
 	const core = getContext<Core>('core');
 	const gamepadConnected = core.input.gamepadConnected;
-
-	$: core.sendToast('info', $gamepadConnected ? 'Gamepad Connected' : 'Gamepad Disconnected');
 </script>
 
 {#key $gamepadConnected}
-	<div style="font-size: 2.25em;" in:scale={{ easing: backOut, start: 0.25 }}>
+	<div in:scale={{ easing: backOut, start: 0.25 }}>
 		{#if $gamepadConnected}
-			<Controller></Controller>
+			<Gamepad2 size="2.5rem" class="text-success-500"></Gamepad2>
 		{:else}
-			<NoController></NoController>
+			<Gamepad2 size="2.5rem" class="text-error-500"></Gamepad2>
 		{/if}
 	</div>
 {/key}

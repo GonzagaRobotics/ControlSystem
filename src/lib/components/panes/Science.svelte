@@ -1,12 +1,10 @@
 <script lang="ts">
+	import type { Core } from '$lib/core/core.svelte';
+	import { Topic } from '$lib/comm/topic';
 	import { getContext } from 'svelte';
 	import Pane from './Pane.svelte';
-	import { Core } from '$lib/core/core';
-	import { Topic } from '$lib/comm/topic';
 
-	export let id: string;
-	export let start: { x: number; y: number };
-	export let size: { x: number; y: number };
+	let { start } = $props();
 
 	const core = getContext<Core>('core');
 
@@ -15,10 +13,8 @@
 		'/science/auger/vertical',
 		'std_msgs/Float32'
 	);
-	const augerVerticalUp = core.input.registerButtonInput('RB');
-	const augerVerticalDown = core.input.registerButtonInput('LB');
-
-    $: augerVerticalTopic.publish({ data: ($augerVerticalUp? 1 : 0) - ($augerVerticalDown? 1 : 0) });
+	const augerVerticalUp = core.input.registerAxisInput('LT');
+	const augerVerticalDown = core.input.registerAxisInput('RT');
 
 	const augerDrillTopic = new Topic<{ data: number }>(
 		core.ros,
@@ -27,26 +23,30 @@
 	);
 	const augerDrill = core.input.registerAxisInput('LY');
 
-	$: augerDrillTopic.publish({ data: $augerDrill });
-
 	const augerActuateTopic = new Topic<{ data: number }>(
 		core.ros,
 		'/science/auger/actuate',
 		'std_msgs/Float32'
 	);
-	const augerActuate = core.input.registerAxisInput('RY');
+	const augerActuateUp = core.input.registerButtonInput('Y');
+	const augerActuateDown = core.input.registerButtonInput('B');
 
-	$: augerActuateTopic.publish({ data: $augerActuate });
+	$effect(() => {
+		augerVerticalTopic.publish({ data: $augerVerticalUp - $augerVerticalDown });
+		augerDrillTopic.publish({ data: $augerDrill });
+
+		augerActuateTopic.publish({
+			data: ($augerActuateUp ? 1 : 0) - ($augerActuateDown ? 1 : 0)
+		});
+	});
 </script>
 
-<Pane {id} {start} {size} containerClasses="flex items-center">
-	<svelte:fragment slot="main">
-		<div>
-			<div>Auger Vertical Input: {$augerVerticalUp - $augerVerticalDown}</div>
+<Pane name="Science" {start} size={{ x: 1, y: 1 }}>
+	<div>
+		<div>Auger Vertical Input: {$augerVerticalUp - $augerVerticalDown}</div>
 
-			<div>Auger Drill Input: {$augerDrill}</div>
+		<div>Auger Drill Input: {$augerDrill}</div>
 
-			<div>Auger Actuate Input: {($augerActuate)}</div>
-		</div>
-	</svelte:fragment>
+		<div>Auger Actuate Input: {($augerActuateUp ? 1 : 0) - ($augerActuateDown ? 1 : 0)}</div>
+	</div>
 </Pane>

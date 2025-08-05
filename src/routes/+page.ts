@@ -3,17 +3,28 @@ import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch }) => {
-	const configFile = await fetch('/config.json5');
+	const configCoreFile = await fetch('/config_core.json5');
+	const configMainFile = await fetch('/config_main.json5');
 
-	if (!configFile.ok) {
-		error(404, 'Failed to load config file: ' + configFile.statusText);
+	if (!configCoreFile.ok) {
+		error(
+			404,
+			`Failed to load config core file (${configCoreFile.statusText}). You likely didn't copy the starter file. Check the README.`
+		);
+	}
+
+	if (!configMainFile.ok) {
+		error(404, 'Failed to load config main file: ' + configMainFile.statusText);
 	}
 
 	try {
+		const configCoreText = await configCoreFile.text();
+		const configMainText = await configMainFile.text();
+
 		return {
-			config: ConfigParser.parseConfig(await configFile.text())
+			config: ConfigParser.parseConfig(configCoreText, configMainText)
 		};
 	} catch (e) {
-		error(500, 'Failed to parse config file: ' + e);
+		error(500, 'Failed to parse config files: ' + e);
 	}
 };

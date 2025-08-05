@@ -1,0 +1,23 @@
+{
+	publishRate: 10,
+	heartbeat: {
+		heartbeatInterval: 1000,
+		heartbeatCheckInterval: 500,
+		heartbeatTimeout: 5000,
+		heartbeatTimeoutLimit: 3
+	},
+	panes: ['test'],
+	tabs: [
+		{
+			id: 'first',
+			name: 'First',
+			panes: [
+				{
+					id: 'test',
+					position: { x: 0, y: 0 }
+				}
+			],
+			attributes: []
+		}
+	]
+}

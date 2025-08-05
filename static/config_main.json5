@@ -1,0 +1,90 @@
+{
+	publishRate: 10,
+	heartbeat: {
+		heartbeatInterval: 1000,
+		heartbeatCheckInterval: 500,
+		heartbeatTimeout: 5000,
+		heartbeatTimeoutLimit: 3
+	},
+	panes: ['camera', 'motors', 'arm', 'autoNav', 'science', 'gnss'],
+	tabs: [
+		{
+			id: 'drive',
+			name: 'Drive',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 }
+				},
+				{
+					id: 'motors',
+					position: { x: 2, y: 0 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 }
+				}
+			],
+			attributes: []
+		},
+		{
+			id: 'autonomous',
+			name: 'Autonomous',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 }
+				},
+				{
+					id: 'motors',
+					position: { x: 2, y: 0 }
+				},
+				{
+					id: 'autoNav',
+					position: { x: 0, y: 1 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 }
+				}
+			],
+			attributes: ['motors_readonly']
+		},
+		{
+			id: 'arm',
+			name: 'Arm',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 }
+				},
+				{
+					id: 'arm',
+					position: { x: 2, y: 0 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 }
+				}
+			]
+		},
+		{
+			id: 'science',
+			name: 'Science',
+			panes: [
+				{
+					id: 'camera',
+					position: { x: 0, y: 0 }
+				},
+				{
+					id: 'science',
+					position: { x: 2, y: 0 }
+				},
+				{
+					id: 'gnss',
+					position: { x: 3, y: 0 }
+				}
+			]
+		}
+	]
+}

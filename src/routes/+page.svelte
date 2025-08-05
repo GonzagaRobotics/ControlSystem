@@ -1,36 +1,38 @@
 <script lang="ts">
-	import AppBar from '$lib/components/AppBar.svelte';
-	import { Core } from '$lib/core/core';
-	import { onMount, setContext, SvelteComponent } from 'svelte';
-	import type { PageData } from './$types';
-	import { derived, writable } from 'svelte/store';
-	import { paneList } from '$lib/components/panes/paneList';
 	import { beforeNavigate } from '$app/navigation';
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { page } from '$app/state';
+	import TopBar from '$lib/components/TopBar.svelte';
+	import { Core } from '$lib/core/core.svelte';
+	import { toaster } from '$lib/core/toaster';
+	import { mount, onMount, setContext, unmount } from 'svelte';
+	import MainWindow from '$lib/components/MainWindow.svelte';
 
-	export let data: PageData;
-
-	const core = new Core(data.config, getToastStore());
+	const core = new Core(page.data.config, toaster);
 	setContext('core', core);
 
-	const selectedTab = writable(core.config.tabs.at(0)?.id ?? '');
-	$: selectedTabObj = core.config.tabs.find((tab) => tab.id === $selectedTab);
-
-	const tabAttributes = derived(selectedTab, ($selectedTab) => {
-		return core.config.tabs.find((tab) => tab.id === $selectedTab)?.attributes ?? [];
-	});
-	setContext('tabAttributes', tabAttributes);
-
-	const paneComponents = new Array<SvelteComponent>(4 * 2);
-
-	beforeNavigate((navigation) => {
-		if (navigation.type == 'leave') {
-			// To prevent any issues with the components not being destroyed properly,
-			// we manually destroy them here so we can be sure any cleanup code is run
-			// before the core is disposed.
-			for (const component of paneComponents) {
-				component?.$destroy();
+	function determineInitialTab(): string {
+		if (core.config.defaultTab) {
+			if (core.config.tabs.find((tab) => tab.id == core.config.defaultTab)) {
+				return core.config.defaultTab;
 			}
+
+			console.warn(`Default tab "${core.config.defaultTab}" not found.`);
+		}
+
+		return core.config.tabs.at(0)?.id ?? '';
+	}
+
+	let selectedTab = $state(determineInitialTab());
+	let tabObj = $derived(core.config.tabs.find((tab) => tab.id == selectedTab));
+	let tabAttributes = $derived(tabObj?.attributes ?? []);
+
+	setContext('tabAttributes', () => tabAttributes);
+
+	let mainWindow: Record<string, any>;
+
+	beforeNavigate((nav) => {
+		if (nav.type == 'leave') {
+			unmount(mainWindow);
 
 			core.dispose();
 		}
@@ -53,47 +55,16 @@
 
 	onMount(() => {
 		requestAnimationFrame(tick);
+
+		mainWindow = mount(MainWindow, {
+			target: document.querySelector('main')!,
+			props: {
+				tabObj: () => tabObj
+			}
+		});
 	});
-
-	function getComponent(paneId: string) {
-		if (!(paneId in paneList)) {
-			console.error(`No component found for pane ID: ${paneId}`);
-
-			return paneList.unknown;
-		}
-
-		return paneList[paneId as keyof typeof paneList];
-	}
 </script>
 
-<main class="w-[100vw] h-[100vh] flex flex-col">
-	<AppBar {selectedTab} />
-
-	<div class="w-full h-full grid grid-cols-4 grid-rows-2">
-		{#await core.init()}
-			<div class="col-span-4 row-span-2 flex justify-center items-center">
-				<h1 class="h1 text-center">Conecting to Rover...</h1>
-			</div>
-		{:then response}
-			{#if response}
-				{#each selectedTabObj?.panes ?? [] as pane (pane.id)}
-					<svelte:component
-						this={getComponent(pane.id)}
-						id={pane.id}
-						start={pane.position}
-						size={pane.size}
-						bind:this={paneComponents[pane.position.y * 4 + pane.position.x]}
-					/>
-				{/each}
-			{:else}
-				<div class="col-span-4 row-span-2 flex justify-center items-center">
-					<h1 class="h1 text-center">Rover did not accept our connection.</h1>
-				</div>
-			{/if}
-		{:catch error}
-			<div class="col-span-4 row-span-2 flex justify-center items-center">
-				<h1 class="h1 text-center">{error}</h1>
-			</div>
-		{/await}
-	</div>
+<main class="flex h-full flex-col gap-2 p-2">
+	<TopBar bind:selectedTab />
 </main>

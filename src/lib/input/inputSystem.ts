@@ -1,4 +1,4 @@
-import type { Tickable } from '$lib/core/core';
+import type { Core, Tickable } from '$lib/core/core.svelte';
 import { derived, writable, type Readable, type Writable } from 'svelte/store';
 import { GamepadManager } from './gamepadManager';
 
@@ -9,8 +9,8 @@ export type Button =
 	| 'Y'
 	| 'LB'
 	| 'RB'
- 	| 'LT'
- 	| 'RT'
+	| 'LT'
+	| 'RT'
 	| 'Back'
 	| 'Start'
 	| 'LS'
@@ -36,8 +36,8 @@ const defaultGamepadState: GamepadState = {
 		Y: 0,
 		LB: 0,
 		RB: 0,
- 		LT: 0,
- 		RT: -1,
+		LT: 0,
+		RT: 0,
 		Back: 0,
 		Start: 0,
 		LS: 0,
@@ -58,6 +58,32 @@ const defaultGamepadState: GamepadState = {
 	}
 };
 
+/**
+ * Options for configuring axis input.
+ */
+export type AxisInputOptions = {
+	/**
+	 * The curvature applied to an axis input. Must be greater than 0.
+	 * @default 1
+	 */
+	curve?: number;
+	/**
+	 * The deadzone applied to an axis input. Must be in range [0, 1].
+	 * Note that the deadzone is applied before the curve.
+	 * @default 0.1
+	 */
+	deadzone?: number;
+	/**
+	 * Whether the axis input is inverted.
+	 * @default false
+	 */
+	inverted?: boolean;
+};
+
+/**
+ * The InputSystem is responsible for managing connected gamepads and providing
+ * convenient methods for working with them.
+ */
 export class InputSystem implements Tickable {
 	private readonly _gamepadManager: GamepadManager;
 
@@ -67,7 +93,7 @@ export class InputSystem implements Tickable {
 	private _internalButtonStores: Map<Button, Writable<boolean>> = new Map();
 	private _internalAxisStores: Map<Axis, Writable<number>> = new Map();
 
-	constructor() {
+	constructor(core: Core) {
 		// Prepare writable stores for each button and axis
 		for (const button of Object.keys(defaultGamepadState.buttons) as Button[]) {
 			this._internalButtonStores.set(button, writable(false));
@@ -77,7 +103,7 @@ export class InputSystem implements Tickable {
 			this._internalAxisStores.set(axis, writable(0));
 		}
 
-		this._gamepadManager = new GamepadManager();
+		this._gamepadManager = new GamepadManager(core);
 
 		this._gamepadManager.gamepad.subscribe((gamepad) => {
 			if (gamepad === null) {
@@ -94,30 +120,58 @@ export class InputSystem implements Tickable {
 		return derived(this._gamepadManager.gamepad, (gamepad) => gamepad != null);
 	}
 
+	/**
+	 * Returns a store that can be used to get input from the specified button.
+	 * @param button The button for which to register input.
+	 */
 	registerButtonInput(button: Button): Readable<boolean> {
 		return { subscribe: this._internalButtonStores.get(button)!.subscribe };
 	}
 
-	registerAxisInput(axis: Axis, curve = 1, deadzone = 0.1, inverted = false): Readable<number> {
-		return derived(this._internalAxisStores.get(axis)!, (axis) => {
+	/**
+	 * Returns a store that can be used to get input from the specified axis.
+	 * @param axis The axis for which to register input.
+	 * @param options Options for configuring the axis input.
+	 */
+	registerAxisInput(axis: Axis, options?: AxisInputOptions): Readable<number> {
+		// Set and validate options
+		const curve = options?.curve ?? 1;
+		if (curve <= 0) {
+			throw new Error('Curve must be greater than 0.');
+		}
+
+		const deadzone = options?.deadzone ?? 0.1;
+		if (deadzone < 0 || deadzone > 1) {
+			throw new Error('Deadzone must be in range [0, 1].');
+		}
+
+		const inverted = options?.inverted ?? false;
+
+		return derived(this._internalAxisStores.get(axis)!, (input) => {
 			// Apply deadzone
-			if (Math.abs(axis) < deadzone) {
+			if (Math.abs(input) < deadzone) {
 				return 0;
 			}
 
 			// Apply curve
-			axis = Math.sign(axis) * Math.pow(Math.abs(axis), curve);
+			input = Math.sign(input) * Math.pow(Math.abs(input), curve);
 
 			// Apply inversion
 			if (inverted) {
-				axis = -axis;
+				input = -input;
 			}
 
-			return axis;
+			return input;
 		});
 	}
 
-	rumbleGamepad(duration: number, strongMagnitude: number, weakMagnitude: number): void {
+	/**
+	 * Triggers a rumble effect on the current gamepad.
+	 * @param duration The duration of the rumble effect in milliseconds.
+	 * @param strongMagnitude The strength of the strong rumble motor in range [0, 1].
+	 * @param weakMagnitude The strength of the weak rumble motor in range [0, 1].
+	 */
+	rumbleGamepad(duration: number, strongMagnitude?: number, weakMagnitude?: number): void {
 		if (this._currentGamepadIndex === -1) {
 			return;
 		}
@@ -149,35 +203,31 @@ export class InputSystem implements Tickable {
 		// to determine what inputs actually changed and update their stores
 		const newGamepadState: GamepadState = {
 			buttons: {
-                // See https://hardwaretester.com/gamepad
 				A: gamepad.buttons[0].value,
 				B: gamepad.buttons[1].value,
-				X: gamepad.buttons[3].value,
-				Y: gamepad.buttons[2].value,
+				X: gamepad.buttons[2].value,
+				Y: gamepad.buttons[3].value,
 				LB: gamepad.buttons[4].value,
 				RB: gamepad.buttons[5].value,
-		 		LT: gamepad.buttons[6].value,
-		 		RT: gamepad.buttons[7].value,
-				Back: gamepad.buttons[8].value,
-				Start: gamepad.buttons[9].value,
-				LS: gamepad.buttons[10].value,
-				RS: gamepad.buttons[11].value,
-				Up: gamepad.buttons[12].value,
-				Down: gamepad.buttons[13].value,
-				Left: gamepad.buttons[14].value,
-				Right: gamepad.buttons[15].value,
-				Center: gamepad.buttons[16].value
+				LT: gamepad.axes[2],
+				RT: gamepad.axes[5],
+				Back: gamepad.buttons[6].value,
+				Start: gamepad.buttons[7].value,
+				LS: gamepad.buttons[9].value,
+				RS: gamepad.buttons[10].value,
+				Up: Math.max(gamepad.axes[7], 0),
+				Down: Math.min(gamepad.axes[7], 0),
+				Left: Math.max(gamepad.axes[6], 0),
+				Right: Math.min(gamepad.axes[6], 0),
+				Center: gamepad.buttons[8].value
 			},
 			axes: {
-                // See https://hardwaretester.com/gamepad
-                
-				// // Invert joystick axes so that positive is up and left
-                // Positive is down and to the right
-				LX: gamepad.axes[0] /* * -1*/,
-				LY: gamepad.axes[1] /* * -1*/,
-				RX: gamepad.axes[2] /* * -1*/,
-				RY: gamepad.axes[3] /* * -1*/,
-				LT: gamepad.axes[4],
+				// Invert joystick axes so that positive is up and left
+				LX: gamepad.axes[0] * -1,
+				LY: gamepad.axes[1] * -1,
+				RX: gamepad.axes[3] * -1,
+				RY: gamepad.axes[4] * -1,
+				LT: gamepad.axes[2],
 				RT: gamepad.axes[5]
 			}
 		};

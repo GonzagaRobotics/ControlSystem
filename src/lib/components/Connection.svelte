@@ -1,20 +1,15 @@
 <script lang="ts">
-	import Disconnected from '~icons/mdi/lan-disconnect';
-	import Connecting from '~icons/mdi/lan-pending';
-	import Connected from '~icons/mdi/lan-connect';
+	import { Wifi, WifiOff } from '@lucide/svelte';
 	import { getContext } from 'svelte';
-	import { type Core } from '$lib/core/core';
+	import { type Core } from '$lib/core/core.svelte';
 
 	const core = getContext<Core>('core');
-	const state = core.state;
 </script>
 
-<div style="font-size: 2em;">
-	{#if $state.connection == 'connected'}
-		<Connected class="text-success-500" />
-	{:else if $state.connection == 'disconnected' || $state.connection == 'failed'}
-		<Disconnected class="text-warning-500" />
-	{:else}
-		<Connecting class="animate-pulse-fast" />
-	{/if}
-</div>
+{#if core.state.connection == 'connected'}
+	<Wifi class="text-success-500" size="2.5rem" />
+{:else if core.state.connection == 'disconnected' || core.state.connection == 'failed'}
+	<WifiOff class="text-warning-500" size="2.5rem" />
+{:else}
+	<Wifi class="animate-pulse" size="2.5rem" />
+{/if}
