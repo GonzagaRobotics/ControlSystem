@@ -4,7 +4,7 @@ import { Service } from './service';
 import type { HeartbeatConfig } from '$lib/core/configParser';
 
 export class HeartbeatManager implements Disposable {
-	private readonly _connectService: Service<HeartbeatConfig, { ready: boolean }>;
+	private readonly _connectService: Service<HeartbeatConfig, { accepted: boolean }>;
 	private readonly _disconnect: Topic<void>;
 	private readonly _inTopic: Topic<void>;
 	private readonly _outTopic: Topic<void>;
@@ -38,9 +38,11 @@ export class HeartbeatManager implements Disposable {
 	}
 
 	async sendConfig() {
-		const response = await this._connectService.call(this._core.config.heartbeat, { ready: true });
+		const response = await this._connectService.call(this._core.config.heartbeat, {
+			accepted: true
+		});
 
-		if (response.ready) {
+		if (response.accepted) {
 			this._checkIntervalId = setInterval(
 				() => this.checkHearbeats(),
 				this._core.config.heartbeat.heartbeatCheckInterval
@@ -52,7 +54,7 @@ export class HeartbeatManager implements Disposable {
 			);
 		}
 
-		return response.ready;
+		return response.accepted;
 	}
 
 	sendHeartbeat() {
