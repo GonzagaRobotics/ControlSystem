@@ -209,16 +209,16 @@ export class InputSystem implements Tickable {
 				Y: gamepad.buttons[3].value,
 				LB: gamepad.buttons[4].value,
 				RB: gamepad.buttons[5].value,
-				LT: gamepad.axes[2],
-				RT: gamepad.axes[5],
+				LT: (gamepad.axes[2] + 1) / 2,
+				RT: (gamepad.axes[5] + 1) / 2,
 				Back: gamepad.buttons[6].value,
 				Start: gamepad.buttons[7].value,
 				LS: gamepad.buttons[9].value,
 				RS: gamepad.buttons[10].value,
-				Up: Math.max(gamepad.axes[7], 0),
-				Down: Math.min(gamepad.axes[7], 0),
-				Left: Math.max(gamepad.axes[6], 0),
-				Right: Math.min(gamepad.axes[6], 0),
+				Up: Math.min(gamepad.axes[7], 0) * -1,
+				Down: Math.max(gamepad.axes[7], 0),
+				Left: Math.min(gamepad.axes[6], 0) * -1,
+				Right: Math.max(gamepad.axes[6], 0),
 				Center: gamepad.buttons[8].value
 			},
 			axes: {
@@ -227,8 +227,8 @@ export class InputSystem implements Tickable {
 				LY: gamepad.axes[1] * -1,
 				RX: gamepad.axes[3] * -1,
 				RY: gamepad.axes[4] * -1,
-				LT: gamepad.axes[2],
-				RT: gamepad.axes[5]
+				LT: (gamepad.axes[2] + 1) / 2,
+				RT: (gamepad.axes[5] + 1) / 2
 			}
 		};
 

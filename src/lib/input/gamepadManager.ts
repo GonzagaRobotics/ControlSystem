@@ -19,12 +19,12 @@ export class GamepadManager {
 				return;
 			}
 
-			if (e.gamepad.mapping != 'standard') {
-				const text = `Gamepad ${e.gamepad.id} is using non-standard mapping "${e.gamepad.mapping}".`;
+			// if (e.gamepad.mapping != 'standard') {
+			// 	const text = `Gamepad ${e.gamepad.id} is using non-standard mapping "${e.gamepad.mapping}".`;
 
-				console.warn(`|GamepadManager| ${text}`);
-				this._core.sendToast('warning', text);
-			}
+			// 	console.warn(`|GamepadManager| ${text}`);
+			// 	this._core.sendToast('warning', text);
+			// }
 
 			const text = `Gamepad ${e.gamepad.id} connected at index ${e.gamepad.index}.`;
 			console.log(`|GamepadManager| ${text}`);
