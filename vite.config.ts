@@ -20,6 +20,12 @@ const fullReloadAlways: PluginOption = {
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), fullReloadAlways],
+	server: {
+		fs: {
+			// Allow it to access files that are not directly imported (shut up chrome dev tools)
+			strict: false
+		}
+	},
 	test: {
 		workspace: [
 			{
