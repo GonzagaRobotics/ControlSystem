@@ -2,14 +2,17 @@ import { type Core, type Disposable } from '$lib/core/core.svelte';
 import { Topic } from './topic';
 import { Service } from './service';
 import type { HeartbeatConfig } from '$lib/core/configParser';
+import { SvelteDate } from 'svelte/reactivity';
 
 export class HeartbeatManager implements Disposable {
 	private readonly _connectService: Service<HeartbeatConfig, { accepted: boolean }>;
 	private readonly _disconnect: Topic<void>;
-	private readonly _inTopic: Topic<void>;
-	private readonly _outTopic: Topic<void>;
+	private readonly _inTopic: Topic<{ id: number }>;
+	private readonly _outTopic: Topic<{ id: number }>;
 	private readonly _core: Core;
-	private _lastHeartbeatTime: Date | undefined;
+	private nextId: number = 0;
+	private _sentHeartbeats: { id: number; sent: SvelteDate }[] = [];
+	private _lastHeartbeatTime: SvelteDate | undefined;
 	private _timeoutCount: number = 0;
 	private _checkIntervalId?: NodeJS.Timeout;
 	private _sendIntervalId?: NodeJS.Timeout;
@@ -28,11 +31,10 @@ export class HeartbeatManager implements Disposable {
 		);
 		this._inTopic = new Topic(core.ros, '/heartbeat/control', 'core_interfaces/Heartbeat');
 		this._outTopic = new Topic(core.ros, '/heartbeat/rover', 'core_interfaces/Heartbeat');
-		this._timeoutCount = 0;
 
 		this._inTopic.subscribe().subscribe((heartbeat) => {
 			if (heartbeat) {
-				this.onHeartbeat();
+				this.onHeartbeat(heartbeat.id);
 			}
 		});
 	}
@@ -58,19 +60,26 @@ export class HeartbeatManager implements Disposable {
 	}
 
 	sendHeartbeat() {
-		this._outTopic.publish();
-		this._lastHeartbeatTime = new Date();
+		this._outTopic.publish({ id: this.nextId });
+		this._sentHeartbeats.push({ id: this.nextId, sent: new SvelteDate() });
 
 		if (this._core.config.fakeConnect) {
-			this.onHeartbeat();
+			this.onHeartbeat(this.nextId);
 		}
+
+		this.nextId++;
 	}
 
-	onHeartbeat() {
-		const now = new Date();
-		const sent = this._lastHeartbeatTime || now;
+	onHeartbeat(id: number) {
+		const now = new SvelteDate();
+		const sent = this._sentHeartbeats.find((v) => v.id == id)?.sent;
+		this._lastHeartbeatTime = now;
 
-		const latency = now.getTime() - sent.getTime();
+		if (!sent) {
+			console.warn(`Got a heartbeat with id ${id}, which we have no record of sending recently.`);
+		}
+
+		const latency = now.getTime() - (sent ?? now).getTime();
 		this._timeoutCount = 0;
 
 		this._core.state.latency = latency;
@@ -78,14 +87,14 @@ export class HeartbeatManager implements Disposable {
 	}
 
 	checkHearbeats() {
-		if (this._core.state.connection != 'connected' || this._lastHeartbeatTime == undefined) {
+		if (this._core.state.connection != 'connected' || !this._lastHeartbeatTime) {
 			return;
 		}
 
-		const now = new Date();
+		const now = new SvelteDate();
 		const interval = this._core.config.heartbeat.heartbeatInterval;
 		const timeout = this._core.config.heartbeat.heartbeatTimeout;
-		const expectedHeartbeatTime = new Date(
+		const expectedHeartbeatTime = new SvelteDate(
 			this._lastHeartbeatTime.getTime() + interval * (this._timeoutCount + 1)
 		);
 
