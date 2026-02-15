@@ -11,12 +11,16 @@
 		curve: 1.5
 	};
 
-	type Vector3 = { x: number; y: number; z: number };
+	type DriveCommand = { forward_backward: number; left_right: number };
 
 	const core = getContext<Core>('core');
 	const tabAttributes = getContext<() => string[]>('tabAttributes');
 
-	const driveTopic = new Topic<Vector3>(core.ros, '/drive_system/drive', 'geometry_msgs/Vector3');
+	const driveTopic = new Topic<DriveCommand>(
+		core.ros,
+		'/drive/command',
+		'drive_interfaces/DriveCommand'
+	);
 
 	const forwardAxis = core.input.registerAxisInput('LY', baseAxisOptions);
 	const turnAxis = core.input.registerAxisInput('LX', baseAxisOptions);
@@ -25,7 +29,7 @@
 
 	$effect(() => {
 		if (readonly == false) {
-			driveTopic.publish({ x: $forwardAxis, y: $turnAxis * 0.75, z: 0 });
+			driveTopic.publish({ forward_backward: $forwardAxis, left_right: $turnAxis * 0.75 });
 		}
 	});
 </script>
