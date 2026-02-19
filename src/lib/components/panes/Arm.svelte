@@ -26,17 +26,22 @@
 	const forearmAxis = core.input.registerAxisInput('RY', baseAxisOptions);
 
 	const wristTopic = new Topic<{ data: number }>(core.ros, '/arm/wrist', 'std_msgs/Float32');
-	const wristOpenButton = core.input.registerButtonInput('A');
-	const wristCloseButton = core.input.registerButtonInput('B');
+	const wristAxis = core.input.registerAxisFromButtons('Up', 'Down');
+
+	const minorXTopic = new Topic<{data: number}>(core.ros, '/arm/minor/x', 'std_msgs/Int32');
+	const minorXAxis = core.input.registerAxisFromButtons('Left', 'Right');
+
+	const grabberTopic = new Topic<{data: number}>(core.ros, '/arm/minor/grabber', 'std_msgs/Int32');
+	const grabberAxis = core.input.registerAxisFromButtons('A', 'B');
 
 	$effect(() => {
 		baseTopic.publish({ data: ($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
 		shoulderTopic.publish({ data: -$shoulderAxis * safetyMultiplier });
 		forearmTopic.publish({ data: $forearmAxis * safetyMultiplier });
+		wristTopic.publish({data: $wristAxis * safetyMultiplier});
 
-		wristTopic.publish({
-			data: (($wristOpenButton ? 1 : 0) - ($wristCloseButton ? 1 : 0)) * safetyMultiplier
-		});
+		minorXTopic.publish({ data: $minorXAxis });
+		grabberTopic.publish({ data: $grabberAxis });
 	});
 </script>
 

@@ -165,6 +165,41 @@ export class InputSystem implements Tickable {
 		});
 	}
 
+	registerAxisFromButtons(pos: Button, neg: Button, options?: AxisInputOptions): Readable<number> {
+		// Set and validate options
+		const curve = options?.curve ?? 1;
+		if (curve <= 0) {
+			throw new Error('Curve must be greater than 0.');
+		}
+
+		const inverted = options?.inverted ?? false;
+
+		return derived(
+			[this._internalButtonStores.get(pos)!, this._internalButtonStores.get(neg)!],
+			([posPressed, negPressed]) => {
+				let input = 0;
+
+				if (posPressed) {
+					input += 1;
+				}
+
+				if (negPressed) {
+					input -= 1;
+				}
+
+				// Apply curve
+				input = Math.sign(input) * Math.pow(Math.abs(input), curve);
+
+				// Apply inversion
+				if (inverted) {
+					input = -input;
+				}
+
+				return input;
+			}
+		);
+	}
+
 	/**
 	 * Triggers a rumble effect on the current gamepad.
 	 * @param duration The duration of the rumble effect in milliseconds.
