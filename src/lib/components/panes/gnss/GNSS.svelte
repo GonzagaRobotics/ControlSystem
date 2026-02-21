@@ -6,16 +6,16 @@
 
 	let { start } = $props();
 
-	function dataToString(latLon: boolean, data: number | undefined) {
+	function dataToString(isLatLon: boolean, data: number | undefined) {
 		if (data == undefined) {
-			if (latLon) {
+			if (isLatLon) {
 				return 'XX.XXXXXX';
 			} else {
 				return 'XXX.XX';
 			}
 		}
 
-		if (latLon) {
+		if (isLatLon) {
 			return data.toFixed(6);
 		} else {
 			return data.toFixed(2);
@@ -25,7 +25,8 @@
 	const core = getContext<Core>('core');
 
 	const gnss = new GNSS(core.ros);
-	const gnssData = gnss.data;
+	const locData = gnss.dataPos;
+	const orientData = gnss.dataOrient;
 
 	onMount(() => {
 		gnss.setTarget('gnss-map');
@@ -41,15 +42,15 @@
 	{start}
 	size={{ x: 1, y: 1 }}
 	containerClasses="flex flex-col"
-	loading={!core.config.fakeConnect && !$gnssData}
+	loading={!core.config.fakeConnect && !$locData && !$orientData}
 >
 	<div class="grid grid-cols-3 grid-rows-2">
-		{@render dataText('Lat', true, $gnssData?.position.x)}
-		{@render dataText('Lon', true, $gnssData?.position.y)}
-		{@render dataText('Alt', false, $gnssData?.position.z)}
-		{@render dataText('Pitch', false, $gnssData?.rotation.x)}
-		{@render dataText('Roll', false, $gnssData?.rotation.y)}
-		{@render dataText('Mag', false, $gnssData?.magHeading)}
+		{@render dataText('Lat', true, $locData?.latitude)}
+		{@render dataText('Lon', true, $locData?.longitude)}
+		{@render dataText('Alt', false, $locData?.altitude)}
+		{@render dataText('Pitch', false, $orientData?.pitch)}
+		{@render dataText('Roll', false, $orientData?.roll)}
+		{@render dataText('Yaw', false, $orientData?.yaw)}
 	</div>
 
 	<div id="gnss-map" class="grow"></div>

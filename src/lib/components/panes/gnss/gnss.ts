@@ -13,34 +13,28 @@ import { Point } from 'ol/geom';
 import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
 
-export type GNSSData = {
-	// lat, long, alt
-	position: {
-		x: number;
-		y: number;
-		z: number;
-	};
-	// pitch, roll, yaw
-	rotation: {
-		x: number;
-		y: number;
-		z: number;
-	};
-	magHeading: number;
+export type LocData = {
+	latitude: number;
+	longitude: number;
+	altitude: number;
 };
 
-const gnssFake: GNSSData = {
-	position: {
-		x: 38.406424,
-		y: -110.791043,
-		z: 1500
-	},
-	rotation: {
-		x: 0,
-		y: 0,
-		z: 0
-	},
-	magHeading: 0
+export type OrientData = {
+	roll: number;
+	pitch: number;
+	yaw: number;
+};
+
+const locFake: LocData = {
+	latitude: 38.406424,
+	longitude: -110.791043,
+	altitude: 1500
+};
+
+const orientFake: OrientData = {
+	roll: 0.05,
+	pitch: -0.01,
+	yaw: 0.042
 };
 
 // Define the conversion between UTM 12N and WGS84
@@ -52,13 +46,21 @@ proj4.defs(
 register(proj4);
 
 export class GNSS {
-	private readonly _topic: Topic<GNSSData>;
+	// TODO: Calibration topic
+	private readonly _locTopic: Topic<LocData>;
+	private readonly _orientTopic: Topic<OrientData>;
 	private readonly _infoSource: VectorSource;
 	private readonly _posPoint: Point;
 	private readonly _map: Map;
 
 	constructor(ros: Ros) {
-		this._topic = new Topic<GNSSData>(ros, 'gnss', 'gnss_interfaces/GNSS', gnssFake);
+		this._locTopic = new Topic<LocData>(ros, 'nav/location', 'nav_interfaces/Location', locFake);
+		this._orientTopic = new Topic<OrientData>(
+			ros,
+			'nav/orient',
+			'nav_interfaces/Orientation',
+			orientFake
+		);
 
 		const groundSource = new GeoTIFF({
 			sources: [
@@ -70,9 +72,7 @@ export class GNSS {
 
 		this._infoSource = new VectorSource();
 
-		this._posPoint = new Point(
-			fromLonLat([gnssFake.position.y, gnssFake.position.x], 'EPSG:26912')
-		);
+		this._posPoint = new Point(fromLonLat([locFake.longitude, locFake.latitude], 'EPSG:26912'));
 
 		const posFeature = new Feature(this._posPoint);
 		this._infoSource.addFeature(posFeature);
@@ -91,13 +91,20 @@ export class GNSS {
 			view: groundSource.getView()
 		});
 
-		this._topic.subscribe().subscribe((data) => {
+		this._locTopic.subscribe().subscribe((data) => {
 			if (!data) {
 				return;
 			}
 
-			this._posPoint.setCoordinates(fromLonLat([data.position.y, data.position.x], 'EPSG:26912'));
-			infoStyle.getImage()!.setRotation((Math.PI / 180) * data.magHeading);
+			this._posPoint.setCoordinates(fromLonLat([data.longitude, data.latitude], 'EPSG:26912'));
+		});
+
+		this._orientTopic.subscribe().subscribe((data) => {
+			if (!data) {
+				return;
+			}
+
+			infoStyle.getImage()!.setRotation((Math.PI / 180) * data.yaw);
 		});
 	}
 
@@ -105,7 +112,11 @@ export class GNSS {
 		this._map.setTarget(name);
 	}
 
-	public get data(): Readable<GNSSData | undefined> {
-		return this._topic.subscribe();
+	public get dataPos(): Readable<LocData | undefined> {
+		return this._locTopic.subscribe();
+	}
+
+	public get dataOrient(): Readable<OrientData | undefined> {
+		return this._orientTopic.subscribe();
 	}
 }
