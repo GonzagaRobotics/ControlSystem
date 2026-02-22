@@ -34,6 +34,9 @@
 	const grabberTopic = new Topic<{data: number}>(core.ros, '/arm/minor/grabber', 'std_msgs/Int32');
 	const grabberAxis = core.input.registerAxisFromButtons('A', 'B');
 
+	const grabberRotTopic = new Topic<{data: number}>(core.ros, '/arm/minor/grabber_rot', 'std_msgs/Int32');
+	const grabberRotAxis = core.input.registerAxisFromButtons('X', 'Y');
+
 	$effect(() => {
 		baseTopic.publish({ data: ($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
 		shoulderTopic.publish({ data: -$shoulderAxis * safetyMultiplier });
@@ -42,6 +45,7 @@
 
 		minorXTopic.publish({ data: $minorXAxis });
 		grabberTopic.publish({ data: $grabberAxis });
+		grabberRotTopic.publish({ data: $grabberRotAxis })
 	});
 </script>
 
