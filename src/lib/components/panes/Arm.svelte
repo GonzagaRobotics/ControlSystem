@@ -38,7 +38,7 @@
 	const grabberRotAxis = core.input.registerAxisFromButtons('X', 'Y');
 
 	$effect(() => {
-		baseTopic.publish({ data: ($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
+		baseTopic.publish({ data: -($baseLeftAxis - $baseRightAxis) * safetyMultiplier });
 		shoulderTopic.publish({ data: -$shoulderAxis * safetyMultiplier });
 		forearmTopic.publish({ data: $forearmAxis * safetyMultiplier });
 		wristTopic.publish({data: $wristAxis * safetyMultiplier});
