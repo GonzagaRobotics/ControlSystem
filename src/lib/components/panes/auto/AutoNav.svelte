@@ -94,7 +94,8 @@
 		const target: TargetMsg = {
 			location: {
 				latitude: parseFloat(formData.get('lat')!.toString()),
-				longitude: parseFloat(formData.get('lon')!.toString())
+				longitude: parseFloat(formData.get('lon')!.toString()),
+				altitude: 0
 			},
 			type: parseInt(formData.get('type')!.toString())
 		};

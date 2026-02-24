@@ -64,6 +64,7 @@ export type TargetMsg = {
 	location: {
 		latitude: number;
 		longitude: number;
+		altitude: number;
 	};
 	type: TargetType;
 };
@@ -72,6 +73,7 @@ export type PlanMsg = {
 	waypoints: {
 		latitude: number;
 		longitude: number;
+		altitude: number;
 	}[];
 };
 
