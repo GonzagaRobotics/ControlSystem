@@ -4,56 +4,69 @@
 	import { Service } from '$lib/comm/service';
 	import type { Core } from '$lib/core/core.svelte';
 	import {
-		type QueryServiceResponse,
+		type GetStateRes,
+		type InstructReq,
+		type InstructRes,
+		type SetTargetReq,
+		type SetTargetRes,
 		type StateMsg,
-		type InstructionMsg,
 		type TargetMsg,
 		type PlanMsg,
 		State,
 		Instruction,
-		stateToString
+		stateToString,
+		DummyGetStateRes,
+		TargetType,
+
+		targetToString
+
 	} from './autoNav';
 	import { Topic } from '$lib/comm/topic';
+	import type { StdMsg } from '$lib/comm/interfaces';
 
 	let { start } = $props();
 
 	const core = getContext<Core>('core');
 
-	const queryStateService = new Service<null, QueryServiceResponse>(
-		core.ros,
-		'auto_nav/query_state',
-		'auto_nav_interfaces/QueryState'
-	);
+	const getStateService = new Service<null, GetStateRes>(core.ros, 'auto/state','auto_msgs/GetState');
+	const instructService = new Service<InstructReq, InstructRes>(core.ros, 'auto/instruct', 'auto_msgs/Instruct');
+	const targetService = new Service<SetTargetReq, SetTargetRes>(core.ros, 'auto/target', 'auto_msgs/SetTarget');
 
-	const enableTopic = new Topic<{ data: boolean }>(core.ros, 'auto_nav/enable', 'std_msgs/Bool');
-	const instructionTopic = new Topic<InstructionMsg>(
-		core.ros,
-		'auto_nav/instruction',
-		'auto_nav_interfaces/Instruction'
-	);
-	const targetTopic = new Topic<TargetMsg>(
-		core.ros,
-		'auto_nav/target',
-		'auto_nav_interfaces/Target'
-	);
-
-	const stateTopic = new Topic<StateMsg>(core.ros, 'auto_nav/state', 'auto_nav_interfaces/State');
+	const enableTopic = new Topic<StdMsg<boolean>>(core.ros, 'auto/enable', 'std_msgs/Bool');
+	const stateTopic = new Topic<StateMsg>(core.ros, 'auto/state', 'auto_msgs/State');
 	const stateTopicSub = stateTopic.subscribe();
-	const planTopic = new Topic<PlanMsg>(core.ros, 'auto_nav/plan', 'auto_nav_interfaces/Plan');
+	const planTopic = new Topic<PlanMsg>(core.ros, 'auto/plan', 'auto_msgs/Plan');
 	const planTopicSub = planTopic.subscribe();
+	const targetTopic = new Topic<TargetMsg>(core.ros, 'auto/target', 'auto_msgs/Target');
+	const targetTopicSub = targetTopic.subscribe();
 
 	let queriedState = $state(false);
 	let autoState = $state<State>(State.DISABLED);
 	let plan = $state<PlanMsg | null>(null);
+	let target = $state<TargetMsg | null>(null);
 
 	$effect(() => {
 		plan = $planTopicSub ?? null;
 	});
 
 	$effect(() => {
-		if ($stateTopicSub) {
-			autoState = $stateTopicSub.state;
+		autoState = $stateTopicSub?.state ?? State.DISABLED;
+	});
+
+	$effect(() => {
+		if (!$targetTopicSub) {
+			return;
 		}
+
+		console.log($targetTopicSub);
+		
+
+		if (Number.isNaN($targetTopicSub.location.latitude)) {
+			target = null;
+			return;
+		}
+
+		target = $targetTopicSub;
 	});
 
 	let isMoving = $derived(
@@ -69,9 +82,12 @@
 		autoState != State.DISABLED && autoState != State.PLANNING && autoState != State.READY
 	);
 
-	queryStateService.call(null, { state: State.DISABLED, plan: { waypoints: [] } }).then((msg) => {
+	getStateService.call(null, DummyGetStateRes).then((msg) => {
 		autoState = msg.state;
-		plan = msg.plan;
+
+		target = msg.hasTarget ? msg.target : null;
+		plan = msg.hasPlan ? msg.plan : null;
+
 		queriedState = true;
 	});
 
@@ -80,7 +96,13 @@
 	}
 
 	function instruct(instruction: Instruction) {
-		instructionTopic.publish({ instruction });
+		instructService.call({ instruction }).then((res) => {
+			if (!res.ok) {
+				core.sendToast('error', `Failed to ${Instruction[instruction].toLowerCase()}: ${res.reason}`);
+			}
+		}).catch((err) => {
+			core.sendToast('error', `Error sending instruction: ${err}`);
+		});
 	}
 
 	function onTargetSubmit(event: Event) {
@@ -91,7 +113,7 @@
 		const formData = new FormData(form);
 
 		// Create target message
-		const target: TargetMsg = {
+		const out: TargetMsg = {
 			location: {
 				latitude: parseFloat(formData.get('lat')!.toString()),
 				longitude: parseFloat(formData.get('lon')!.toString()),
@@ -100,7 +122,13 @@
 			type: parseInt(formData.get('type')!.toString())
 		};
 
-		targetTopic.publish(target);
+		target = out;
+
+		targetService.call({ target: out }).then((res) => {
+			core.sendToast(res.ok ? 'success' : 'error', res.ok ? 'Ok' : `Failed to set target: ${res.reason}`);
+		}).catch((err) => {
+			core.sendToast('error', `Error setting target: ${err}`);
+		});
 	}
 </script>
 
@@ -124,7 +152,8 @@
 		<h4 class="h4 text-center">Status</h4>
 
 		<p class="text-lg">State: {stateToString(autoState)}</p>
-		<p class="text-lg">Current Plan: {plan?.waypoints.length ?? 'No'} waypoints</p>
+		<p class="text-lg">Plan: {plan?.waypoints.length ?? 'No'} waypoints</p>
+		<p class="text-lg">{targetToString(target)}</p>
 
 		<button
 			class="btn btn-lg mt-2 w-3/4 preset-filled-{autoState === State.DISABLED
@@ -150,6 +179,7 @@
 					min="-90"
 					max="90"
 					step="any"
+					value="38.419745"
 					required
 				/>
 			</label>
@@ -164,6 +194,7 @@
 					min="-180"
 					max="180"
 					step="any"
+					value="-110.774118"
 					required
 				/>
 			</label>
@@ -171,10 +202,11 @@
 			<label class="label mb-4">
 				<span>Type</span>
 				<select class="select" name="type">
-					<option value="0">Geo Location</option>
-					<option value="1">ARUCO</option>
-					<option value="2">Rubber Mallet</option>
-					<option value="3">Water Bottle</option>
+					<option value="0">GNSS</option>
+					<option value="1">ArUco</option>
+					<option value="2">Water Bottle</option>
+					<option value="3">Rubber Mallet</option>
+					<option value="4">Rock Hammer</option>
 				</select>
 			</label>
 

@@ -42,22 +42,20 @@ export enum Instruction {
  * The types of targets that AutoNav can navigate to.
  */
 export enum TargetType {
-	/** High precision GPS coordinates. */
-	GEO_LOC,
-	/** Post marked with ARUCO tags. */
+	/** High precision GNSS coordinates. */
+	GNSS,
+	/** Post marked with ArUco tags. */
 	ARUCO,
+	/** Water bottle. */
+	BOTTLE,
 	/** Rubber mallet. */
 	MALLET,
-	/** Water bottle. */
-	BOTTLE
+	/** Rock hammer. */
+	HAMMER
 }
 
 export type StateMsg = {
 	state: State;
-};
-
-export type InstructionMsg = {
-	instruction: Instruction;
 };
 
 export type TargetMsg = {
@@ -77,9 +75,30 @@ export type PlanMsg = {
 	}[];
 };
 
-export type QueryServiceResponse = {
+export type GetStateRes = {
 	state: State;
+	hasTarget: boolean;
+	target: TargetMsg;
+	hasPlan: boolean;
 	plan: PlanMsg;
+};
+
+export type InstructReq = {
+	instruction: Instruction;
+};
+
+export type InstructRes = {
+	ok: boolean;
+	reason: string;
+};
+
+export type SetTargetReq = {
+	target: TargetMsg;
+};
+
+export type SetTargetRes = {
+	ok: boolean;
+	reason: string;
 };
 
 export function stateToString(state: State): string {
@@ -119,3 +138,51 @@ export function instructionToString(instruction: Instruction): string {
 			return 'Terminate';
 	}
 }
+
+export function targetToString(target: TargetMsg | null): string {
+	if (!target) {
+		return 'No Target';
+	}
+
+	const { location, type } = target;
+	let typeStr: string;
+	switch (type) {
+		case TargetType.GNSS:
+			typeStr = 'GNSS';
+			break;
+		case TargetType.ARUCO:
+			typeStr = 'ArUco';
+			break;
+		case TargetType.BOTTLE:
+			typeStr = 'Water Bottle';
+			break;
+		case TargetType.MALLET:
+			typeStr = 'Rubber Mallet';
+			break;
+		case TargetType.HAMMER:
+			typeStr = 'Rock Hammer';
+			break;
+		default:
+			typeStr = 'Unknown';
+	}
+
+	return `${typeStr} at (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}, ${location.altitude.toFixed(0)})`;
+}
+
+
+export const DummyGetStateRes: GetStateRes = {
+	state: State.DISABLED,
+	hasTarget: false,
+	target: {
+		location: {
+			latitude: 0,
+			longitude: 0,
+			altitude: 0
+		},
+		type: TargetType.GNSS
+	},
+	hasPlan: false,
+	plan: {
+		waypoints: []
+	}
+};

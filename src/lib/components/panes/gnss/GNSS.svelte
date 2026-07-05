@@ -28,9 +28,13 @@
 	const locData = gnss.dataPos;
 	const orientData = gnss.dataOrient;
 
-	onMount(() => {
-		gnss.setTarget('gnss-map');
-	});
+	let loading = $derived(!core.config.fakeConnect && !$locData && !$orientData);
+
+	$effect(() => {
+		if (!loading) {
+			gnss.setTarget('gnss-map');
+		}
+	})
 </script>
 
 {#snippet dataText(text: string, latLon: boolean, data?: number)}
@@ -42,15 +46,15 @@
 	{start}
 	size={{ x: 1, y: 1 }}
 	containerClasses="flex flex-col"
-	loading={!core.config.fakeConnect && !$locData && !$orientData}
+	loading={loading}
 >
 	<div class="grid grid-cols-3 grid-rows-2">
 		{@render dataText('Lat', true, $locData?.latitude)}
 		{@render dataText('Lon', true, $locData?.longitude)}
 		{@render dataText('Alt', false, $locData?.altitude)}
-		{@render dataText('Pitch', false, $orientData?.pitch)}
-		{@render dataText('Roll', false, $orientData?.roll)}
-		{@render dataText('Yaw', false, $orientData?.yaw)}
+		{@render dataText('Pitch', false, $orientData?.z)}
+		{@render dataText('Roll', false, $orientData?.y)}
+		{@render dataText('Yaw', false, $orientData?.x)}
 	</div>
 
 	<div id="gnss-map" class="grow"></div>
