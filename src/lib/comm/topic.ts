@@ -1,4 +1,4 @@
-import ROSLIB from 'roslib';
+import * as ROSLIB from 'roslib';
 import { Ros } from './ros.svelte';
 import { writable, type Readable, type Writable } from 'svelte/store';
 
