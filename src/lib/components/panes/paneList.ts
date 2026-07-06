@@ -3,7 +3,7 @@ import Motors from './Motors.svelte';
 import Science from './Science.svelte';
 import Unknown from './Unknown.svelte';
 import Camera from './camera/Camera.svelte';
-import AutoNav from './auto/AutoNav.svelte';
+import Auto from './auto/Auto.svelte';
 import GNSS from './gnss/GNSS.svelte';
 
 export const paneList = {
@@ -13,5 +13,5 @@ export const paneList = {
 	science: Science,
 	camera: Camera,
 	gnss: GNSS,
-	autoNav: AutoNav
+	auto: Auto
 };

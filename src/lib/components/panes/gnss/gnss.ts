@@ -14,8 +14,8 @@ import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
 import type { ImuMsg, NavSatFix, Vector3Msg } from '$lib/comm/interfaces';
 import { quatToEuler } from '$lib/core/math';
-import type { PlanMsg } from '../auto/autoNav';
 import { Stroke } from 'ol/style';
+import type { Core } from '$lib/core/core.svelte';
 
 const fixFake: NavSatFix = {
 	header: {
@@ -77,16 +77,14 @@ export class GNSS {
 	private readonly _fixTopic: Topic<NavSatFix>;
 	// TODO: Calibration topic
 	private readonly _imuTopic: Topic<ImuMsg>;
-	private readonly _planTopic: Topic<PlanMsg>;
 	private readonly _infoSource: VectorSource;
 	private readonly _planSource: VectorSource;
 	private readonly _posPoint: Point;
 	private readonly _map: Map;
 
-	constructor(ros: Ros) {
-		this._fixTopic = new Topic<NavSatFix>(ros, 'fix', 'sensor_msgs/NavSatFix', fixFake);
-		this._imuTopic = new Topic<ImuMsg>(ros, 'imu', 'sensor_msgs/Imu', imuFake);
-		this._planTopic = new Topic<PlanMsg>(ros, 'auto/plan', 'auto_msgs/Plan');
+	constructor(core: Core) {
+		this._fixTopic = new Topic<NavSatFix>(core.ros, 'fix', 'sensor_msgs/NavSatFix', fixFake);
+		this._imuTopic = new Topic<ImuMsg>(core.ros, 'imu', 'sensor_msgs/Imu', imuFake);
 
 		const groundSource = new GeoTIFF({
 			sources: [
@@ -144,14 +142,18 @@ export class GNSS {
 			infoStyle.getImage()!.setRotation((Math.PI / 180) * rpy.z);
 		});
 
-		this._planTopic.subscribe().subscribe((plan) => {
-			this._planSource.clear();
-
-			if (!plan) {
+		core.ipcBus.subscribe((msg) => {
+			if (msg?.type !== 'auto_plan') {
 				return;
 			}
 
-			const coords = plan.waypoints.map((wp) => fromLonLat([wp.longitude, wp.latitude], 'EPSG:26912'));
+			this._planSource.clear();
+
+			const plan = msg.data as [number, number][];
+
+			const coords = plan.map((wp) => fromLonLat([wp[1], wp[0]], 'EPSG:26912'));
+			coords.unshift(this._posPoint.getCoordinates() as [number, number]);
+
 			const planFeature = new Feature(new LineString(coords));
 
 			this._planSource.addFeature(planFeature);
