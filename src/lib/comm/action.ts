@@ -53,4 +53,8 @@ export class ActionClient<G, R, F> {
 
         return store;
     }
+
+    cancelAll() {
+        this._internal?.cancelAllGoals();
+    }
 }
