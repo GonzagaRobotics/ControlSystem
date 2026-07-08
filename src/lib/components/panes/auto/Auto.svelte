@@ -4,7 +4,7 @@
 	import Pane from '../Pane.svelte';
 	import type { Core } from '$lib/core/core.svelte';
 	import { ActionClient, type ActionPacket } from '$lib/comm/action';
-	import { type GoToGoal, type GoToRes, type GoToFeedback, StateEnum } from './auto';
+	import { type GoToGoal, type GoToRes, type GoToFeedback, StateEnum, stateToString } from './auto';
 
 	let { start } = $props();
 
@@ -179,19 +179,21 @@
 
     {#if $gotoHandle}
         {#if result == "aborted"}
-            <p class="text-error-500">Action aborted</p>
+            <p class="text-lg text-error-500">Action aborted</p>
         {:else if result == "result"}
-            <p class="text-success-500">Action completed</p>
+            <p class="text-lg text-success-500">Action completed</p>
         {:else}
-            <p>Plan: {plan.length > 0 ? `${plan.length} waypoints` : "Planning..."}</p>
+            <p class="text-lg">State: {stateToString(gotoState ?? StateEnum.UNKNOWN)}</p>
             
             {#if plan.length > 0}
-                <p>Target waypoint: {currentWp + 1} / {plan.length}</p>
+                <p class="text-lg">Plan: {plan.length} waypoints</p>
+
+                <p class="text-lg">Target waypoint: {currentWp + 1} / {plan.length}</p>
             {/if}
         {/if}
 
     {:else}
-        <p>Waiting for input...</p>
+        <p class="text-lg">Waiting for input...</p>
     {/if}
 </div>
 </Pane>

@@ -30,6 +30,7 @@ export enum StateEnum {
     /** Unable to reach the target */
     FAILURE = 6
 }
+
 export type StateMsg = {
     state: StateEnum;
 };
@@ -61,3 +62,24 @@ export type GoToFeedback = {
     state: StateMsg;
     status: string;
 };
+
+export function stateToString(state: StateEnum): string {
+    switch (state) {
+        case StateEnum.UNKNOWN:
+            return "Unknown";
+        case StateEnum.PLANNING:
+            return "Planning";
+        case StateEnum.TRAVELING:
+            return "Traveling";
+        case StateEnum.TERMINAL_SEARCHING:
+            return "Searching for target";
+        case StateEnum.TERMINAL_MOVING:
+            return "Moving to target";
+        case StateEnum.SUCCESS:
+            return "Success";
+        case StateEnum.FAILURE:
+            return "Failure";
+        default:
+            return "Invalid state";
+    }
+}
