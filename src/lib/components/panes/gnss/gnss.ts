@@ -150,12 +150,9 @@ export class GNSS {
 			this._planSource.clear();
 
 			const plan = msg.data as [number, number][];
-
 			const coords = plan.map((wp) => fromLonLat([wp[1], wp[0]], 'EPSG:26912'));
-			coords.unshift(this._posPoint.getCoordinates() as [number, number]);
 
 			const planFeature = new Feature(new LineString(coords));
-
 			this._planSource.addFeature(planFeature);
 		});
 	}

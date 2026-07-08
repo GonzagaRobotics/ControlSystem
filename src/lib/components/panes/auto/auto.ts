@@ -14,10 +14,29 @@ export enum TargetType {
     HAMMER
 }
 
+export enum StateEnum {
+    /** Error state, should not happen */
+    UNKNOWN = 0,
+    /** Searching for a path to the target */
+    PLANNING = 1,
+    /** Following the plan to get near the target */
+    TRAVELING = 2,
+    /** At the target area, searching for the target */
+    TERMINAL_SEARCHING = 3,
+    /** Found the target, moving to it */
+    TERMINAL_MOVING = 4,
+    /** Stopped near the target */
+    SUCCESS = 5,
+    /** Unable to reach the target */
+    FAILURE = 6
+}
+export type StateMsg = {
+    state: StateEnum;
+};
+
 export type LocationMsg = {
     latitude: number;
     longitude: number;
-    altitude: number;
 };
 
 export type TargetMsg = {
@@ -34,9 +53,11 @@ export type GoToGoal = {
 };
 
 export type GoToRes = {
-    status: string;
+    state: StateMsg;
+    result: string;
 }
 
 export type GoToFeedback = {
+    state: StateMsg;
     status: string;
 };
