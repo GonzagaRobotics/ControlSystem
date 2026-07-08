@@ -169,9 +169,9 @@
         <button class="btn btn-lg w-full preset-filled-primary-500" onclick={sendGoto}>Transmit</button>
     </div>
 
-    <!-- {#if running} -->
+    {#if running}
         <button class="mt-6 btn btn-lg w-full preset-filled-warning-500" onclick={stopGoto}>Stop</button>
-    <!-- {/if} -->
+    {/if}
 </div>
 
 <div class="flex flex-col items-center gap-2 p-4">
