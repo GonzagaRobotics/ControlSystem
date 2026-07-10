@@ -4,7 +4,7 @@
 	import Pane from '../Pane.svelte';
 	import type { Core } from '$lib/core/core.svelte';
 	import { ActionClient, type ActionPacket } from '$lib/comm/action';
-	import { type GoToGoal, type GoToRes, type GoToFeedback, StateEnum, stateToString } from './auto';
+	import { type GoToGoal, type GoToRes, type GoToFeedback, StateEnum, stateToString, ObjectId, TargetType } from './auto';
 
 	let { start } = $props();
 
@@ -17,6 +17,8 @@
     let goalLat = $state<number>(38.408303);
     let goalLon = $state<number>(-110.785918);
     let goalType = $state<string>("0");
+    let goalAId = $state<number>(0);
+    let goalOId = $state<string>("0");
 
     let running = $derived.by(() => {
         if (gotoHandle == null) {
@@ -48,7 +50,7 @@
         return $gotoHandle.type;
     });
 
-    
+
     let plan = $state<[number, number][]>([]);
     /** Waypoint that is currently being approached */
     let currentWp = $state<number>(0);
@@ -87,6 +89,15 @@
     })
 
     function sendGoto() {
+        let id;
+
+        if (goalType == TargetType.ARUCO.toString()) {
+            id = goalAId;
+        }
+        else if (goalType == TargetType.OBJECT.toString()) {
+            id = parseInt(goalOId);
+        }
+
         const goal: GoToGoal = {
             target: {
                 location: {
@@ -94,6 +105,7 @@
                     longitude: goalLon
                 },
                 type: parseInt(goalType),
+                id: id ?? 0
             }
         }
 
@@ -158,13 +170,35 @@
         <label class="label mb-4">
             <span>Type</span>
             <select class="select" name="type" bind:value={goalType}>
-                <option value="0" selected>GNSS</option>
-                <option value="1">ArUco</option>
-                <option value="2">Water Bottle</option>
-                <option value="3">Rubber Mallet</option>
-                <option value="4">Rock Hammer</option>
+                <option value={TargetType.GNSS.toString()}>GNSS</option>
+                <option value={TargetType.ARUCO.toString()}>ArUco</option>
+                <option value={TargetType.OBJECT.toString()}>Object</option>
             </select>
         </label>
+
+        {#if goalType == TargetType.ARUCO.toString()}
+            <label class="label mb-4">
+                <span>ArUco ID</span>
+                <input
+                    class="input"
+                    type="number"
+                    name="aruco_id"
+                    placeholder="ArUco ID"
+                    min="0"
+                    step="1"
+                    bind:value={goalAId}
+                />
+            </label>
+        {:else if goalType == TargetType.OBJECT.toString()}
+            <label class="label mb-4">
+                <span>Object ID</span>
+                <select class="select" name="object_id" bind:value={goalOId}>
+                    <option value={ObjectId.BOTTLE.toString()}>Water Bottle</option>
+                    <option value={ObjectId.MALLET.toString()}>Rubber Mallet</option>
+                    <option value={ObjectId.HAMMER.toString()}>Rock Hammer</option>
+                </select>
+            </label>
+        {/if}
 
         <button class="btn btn-lg w-full preset-filled-primary-500" onclick={sendGoto}>Transmit</button>
     </div>
@@ -186,9 +220,9 @@
             <p class="text-lg">State: {stateToString(gotoState ?? StateEnum.UNKNOWN)}</p>
             
             {#if plan.length > 0}
-                <p class="text-lg">Plan: {plan.length} waypoints</p>
+                <p class="text-lg">Plan: {plan.length - 1} waypoints</p>
 
-                <p class="text-lg">Target waypoint: {currentWp + 1} / {plan.length}</p>
+                <p class="text-lg">Target waypoint: {currentWp} / {plan.length - 1}</p>
             {/if}
         {/if}
 

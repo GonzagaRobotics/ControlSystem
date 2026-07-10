@@ -6,11 +6,16 @@ export enum TargetType {
     GNSS,
     /** Post marked with ArUco tags. */
     ARUCO,
-    /** Water bottle. */
+    /** Object needing detection. */
+    OBJECT
+}
+
+export enum ObjectId {
+    /** Water bottle */
     BOTTLE,
-    /** Rubber mallet. */
+    /** Rubber mallet */
     MALLET,
-    /** Rock hammer. */
+    /** Rock hammer */
     HAMMER
 }
 
@@ -43,6 +48,8 @@ export type LocationMsg = {
 export type TargetMsg = {
     location: LocationMsg;
     type: TargetType;
+    /** ObjectId for OBJECT type, number for ARUCO tag ID, ignored for GNSS */
+    id: ObjectId | number;
 };
 
 export type PlanMsg = {
