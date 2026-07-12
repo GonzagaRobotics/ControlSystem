@@ -4,6 +4,7 @@ import { Ros } from '$lib/comm/ros.svelte';
 import { InputSystem } from '$lib/input/inputSystem';
 import { HeartbeatManager } from '$lib/comm/heartbeatManager.svelte';
 import { IntervalPublisher } from '$lib/comm/intervalPublisher';
+import { writable } from 'svelte/store';
 
 /**
  * An object that can be disposed of when it is no longer needed.
@@ -53,6 +54,7 @@ export class Core implements Disposable, Tickable {
 	readonly ros: Ros;
 	readonly input: InputSystem;
 	readonly intervalPublisher: IntervalPublisher;
+	readonly ipcBus = writable<any>(null);
 
 	private readonly _heartbeatManager: HeartbeatManager | null;
 	private readonly _toaster: any;

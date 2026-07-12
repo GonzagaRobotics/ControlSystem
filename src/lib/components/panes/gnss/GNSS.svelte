@@ -24,11 +24,12 @@
 
 	const core = getContext<Core>('core');
 
-	const gnss = new GNSS(core.ros);
+	const gnss = new GNSS(core);
 	const locData = gnss.dataPos;
 	const orientData = gnss.dataOrient;
 
-	let loading = $derived(!core.config.fakeConnect && !$locData && !$orientData);
+	// let loading = $derived(!core.config.fakeConnect && !$locData && !$orientData);
+	let loading = $derived(!core.config.fakeConnect && !$locData);
 
 	$effect(() => {
 		if (!loading) {

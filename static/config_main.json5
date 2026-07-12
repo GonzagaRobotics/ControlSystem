@@ -6,7 +6,7 @@
 		heartbeatTimeout: 5000,
 		heartbeatTimeoutLimit: 3
 	},
-	panes: ['camera', 'motors', 'arm', 'autoNav', 'science', 'gnss'],
+	panes: ['camera', 'motors', 'arm', 'auto', 'science', 'gnss'],
 	tabs: [
 		{
 			id: 'drive',
@@ -40,7 +40,7 @@
 					position: { x: 2, y: 0 }
 				},
 				{
-					id: 'autoNav',
+					id: 'auto',
 					position: { x: 0, y: 1 }
 				},
 				{

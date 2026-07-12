@@ -1,0 +1,92 @@
+/**
+ * The types of targets that AutoNav can navigate to.
+ */
+export enum TargetType {
+    /** High precision GNSS coordinates. */
+    GNSS,
+    /** Post marked with ArUco tags. */
+    ARUCO,
+    /** Object needing detection. */
+    OBJECT
+}
+
+export enum ObjectId {
+    /** Water bottle */
+    BOTTLE,
+    /** Rubber mallet */
+    MALLET,
+    /** Rock hammer */
+    HAMMER
+}
+
+export enum StateEnum {
+    /** Error state, should not happen */
+    UNKNOWN = 0,
+    /** Searching for a path to the target */
+    PLANNING = 1,
+    /** Following the plan to get near the target */
+    TRAVELING = 2,
+    /** At the target area, searching for the target */
+    TERMINAL_SEARCHING = 3,
+    /** Found the target, moving to it */
+    TERMINAL_MOVING = 4,
+    /** Stopped near the target */
+    SUCCESS = 5,
+    /** Unable to reach the target */
+    FAILURE = 6
+}
+
+export type StateMsg = {
+    state: StateEnum;
+};
+
+export type LocationMsg = {
+    latitude: number;
+    longitude: number;
+};
+
+export type TargetMsg = {
+    location: LocationMsg;
+    type: TargetType;
+    /** ObjectId for OBJECT type, number for ARUCO tag ID, ignored for GNSS */
+    id: ObjectId | number;
+};
+
+export type PlanMsg = {
+    waypoints: LocationMsg[];
+};
+
+export type GoToGoal = {
+    target: TargetMsg;
+};
+
+export type GoToRes = {
+    state: StateMsg;
+    result: string;
+}
+
+export type GoToFeedback = {
+    state: StateMsg;
+    status: string;
+};
+
+export function stateToString(state: StateEnum): string {
+    switch (state) {
+        case StateEnum.UNKNOWN:
+            return "Unknown";
+        case StateEnum.PLANNING:
+            return "Planning";
+        case StateEnum.TRAVELING:
+            return "Traveling";
+        case StateEnum.TERMINAL_SEARCHING:
+            return "Searching for target";
+        case StateEnum.TERMINAL_MOVING:
+            return "Moving to target";
+        case StateEnum.SUCCESS:
+            return "Success";
+        case StateEnum.FAILURE:
+            return "Failure";
+        default:
+            return "Invalid state";
+    }
+}
