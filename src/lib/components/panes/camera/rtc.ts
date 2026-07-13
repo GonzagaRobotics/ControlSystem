@@ -1,144 +1,65 @@
-import { CONTROL_SOURCE_NAME } from '$lib/core/core.svelte';
-import { get, writable, type Readable, type Writable } from 'svelte/store';
+import type { StdMsg } from '$lib/comm/interfaces';
+import { Topic } from '$lib/comm/topic';
+import { Core } from '$lib/core/core.svelte';
 
 export class RTC {
-	/** The websocket to the signaling server. */
-	readonly socket: WebSocket;
+	private _pc = new RTCPeerConnection();
 
-	private _pc: Writable<RTCPeerConnection>;
-	private _sources: Writable<string[]>;
-	private _makingOffer: boolean;
+	// Signaling from the source to us
+	private _signalSrcTopic: Topic<StdMsg<string>>;
+	// Signaling from us to the source
+	private _signalSinkTopic: Topic<StdMsg<string>>;
 
-	public get pc(): Readable<RTCPeerConnection> {
+	public get pc(): RTCPeerConnection {
 		return this._pc;
 	}
 
-	public get sources(): Readable<string[]> {
-		return this._sources;
+	constructor(core: Core) {
+		this._signalSrcTopic = new Topic(core.ros, "/webrtc/signal_src", "std_msgs/String");
+		this._signalSinkTopic = new Topic(core.ros, "/webrtc/signal_sink", "std_msgs/String");
+
+		this.setupLogListeners();
+
+		this._signalSrcTopic.subscribe().subscribe((msg) => {
+			if (msg) {
+				this.onMessage(JSON.parse(msg.data));
+			}
+		});
 	}
 
-	constructor(url: string) {
-		this._pc = writable(new RTCPeerConnection());
-		this._sources = writable([]);
-		this.socket = new WebSocket(`${url}/${CONTROL_SOURCE_NAME}`);
-		this._makingOffer = false;
-
-		this.setup();
-	}
-
-	async connectToSource(source: string) {
-		this.socket.send(JSON.stringify({ type: 'sourceChange', to: source }));
-
-		const pc = get(this._pc);
-
-		const offer = await pc.createOffer();
-		await pc.setLocalDescription(offer);
-
-		console.log('|Camera| Sending offer');
-
-		this.socket.send(JSON.stringify(offer));
-	}
-
-	reset() {
-		this._pc.set(new RTCPeerConnection());
+	async connect() {
+		this._signalSinkTopic.publish({ data: "{ \"type\": \"connect\" }" });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private async onMessage(message: any) {
-		switch (message.type) {
-			case 'sources': {
-				console.log('|Camera| Got new sources');
-				this._sources.set(message.sources);
-				break;
-			}
-			case 'candidate': {
-				console.log('|Camera| Got candidate');
-				get(this._pc).addIceCandidate(message.candidate);
-				break;
-			}
-			default: {
-				const pc = get(this._pc);
+		if (message.type == "offer") {
+			console.log("|Camera| Got offer");
 
-				// As the impolite peer, we ignore offers during a collision
-				if (message.type === 'offer' && (this._makingOffer || pc.signalingState !== 'stable')) {
-					return;
-				}
-
-				await pc.setRemoteDescription(message);
-
-				if (message.type == 'offer') {
-					console.log('|Camera| Got offer');
-
-					await pc.setLocalDescription();
-					this.socket.send(JSON.stringify(pc.localDescription));
-				} else if (message.type == 'answer') {
-					console.log('|Camera| Got answer');
-				} else {
-					console.log('|Camera| Unknown message type:', message.type);
-				}
-			}
+			await this._pc.setRemoteDescription(message);
+			await this._pc.setLocalDescription();
+			this._signalSinkTopic.publish({ data: JSON.stringify(this._pc.localDescription) });
 		}
 	}
 
-	private setup() {
-		const pc = get(this._pc);
-
-		this.setupLogListeners();
-
-		pc.onicecandidate = (event) => {
-			if (event.candidate) {
-				this.socket.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
-			}
-		};
-
-		pc.onnegotiationneeded = async () => {
-			console.log(`|Camera| Negotiation needed`);
-
-			try {
-				this._makingOffer = true;
-				const offer = await pc.createOffer();
-				await pc.setLocalDescription(offer);
-				this.socket.send(JSON.stringify(offer));
-			} catch (err) {
-				console.error(err);
-			} finally {
-				this._makingOffer = false;
-			}
-		};
-
-		this.socket.onmessage = (ev) => {
-			this.onMessage(JSON.parse(ev.data));
-		};
-
-		this.socket.onclose = () => {
-			console.log('|Camera| WebSocket closed');
-		};
-
-		this.socket.onerror = (event) => {
-			console.error('|Camera| WebSocket error', event);
-		};
-	}
-
 	private setupLogListeners() {
-		const pc = get(this._pc);
-
-		pc.onsignalingstatechange = () => {
-			console.log(`|Camera| Signaling state: ${pc.signalingState}`);
+		this._pc.onsignalingstatechange = () => {
+			console.log(`|Camera| Signaling state: ${this._pc.signalingState}`);
 		};
 
-		pc.oniceconnectionstatechange = () => {
-			console.log(`|Camera| ICE connection state: ${pc.iceConnectionState}`);
+		this._pc.oniceconnectionstatechange = () => {
+			console.log(`|Camera| ICE connection state: ${this._pc.iceConnectionState}`);
 		};
 
-		pc.onicegatheringstatechange = () => {
-			console.log(`|Camera| ICE gathering state: ${pc.iceGatheringState}`);
+		this._pc.onicegatheringstatechange = () => {
+			console.log(`|Camera| ICE gathering state: ${this._pc.iceGatheringState}`);
 		};
 
-		pc.onconnectionstatechange = () => {
-			console.log(`|Camera| Connection state: ${pc.connectionState}`);
+		this._pc.onconnectionstatechange = () => {
+			console.log(`|Camera| Connection state: ${this._pc.connectionState}`);
 		};
 
-		pc.onicecandidateerror = (event) => {
+		this._pc.onicecandidateerror = (event) => {
 			console.error('|Camera| ICE candidate error:', event);
 		};
 	}

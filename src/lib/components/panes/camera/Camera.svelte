@@ -5,36 +5,18 @@
 	import { RTC } from './rtc';
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import { Video } from '@lucide/svelte';
+	import { Topic } from '$lib/comm/topic';
+	import type { StdMsg } from '$lib/comm/interfaces';
 
 	let { start } = $props();
 
 	const core = getContext<Core>('core');
-	const rtc = new RTC(`ws://${core.config.rtcSignalingUrl}`);
+	const rtc = new RTC(core);
 
 	let video: HTMLVideoElement;
 
-	const sources = rtc.sources;
-	let selectedSource = $state('');
-
-	let selectOpen = $state(false);
-
 	let maxSize = $state([0, 0]);
 	let videoSize = $state([0, 0]);
-
-	$effect(() => {
-		if (selectedSource != '') {
-			rtc.connectToSource(selectedSource);
-		}
-	});
-
-	$effect(() => {
-		if ($sources.find((source) => source === selectedSource) || selectedSource == '') {
-			return;
-		}
-
-		selectedSource = '';
-		core.sendToast('warning', 'Your selected source is no longer available');
-	});
 
 	$effect(() => {
 		if (!video) {
@@ -55,56 +37,30 @@
 			video.width = maxSize[1] * aspect;
 			video.height = maxSize[1];
 		}
+
+		video.style.left = `${(maxSize[0] - video.width) / 2}px`;
 	});
 
-	onMount(() => {
-		rtc.pc.subscribe((current) => {
-			// Remove previous video stream
-			video.srcObject = null;
+	$effect(() => {
+		rtc.pc.ontrack = (event) => {
+			rtc.pc.getTransceivers()[0].receiver.jitterBufferTarget = 0;
+			video.srcObject = event.streams[0];
+		};
 
-			current.ontrack = (event) => {
-				video.srcObject = event.streams[0];
-			};
-		});
-	});
+		rtc.connect();
+
+		return () => {
+			rtc.pc.close();
+		}
+	})
 </script>
 
 <Pane name="Camera" {start} size={{ x: 2, y: 1 }}>
-	<Popover
-		open={selectOpen}
-		onOpenChange={(e) => (selectOpen = e.open)}
-		positioning={{ placement: 'bottom-end' }}
-		triggerBase="relative float-right mr-4"
-		triggerClasses={selectedSource === '' ? 'animate-pulse' : ''}
-		contentBase="card bg-surface-200-800 p-1"
-	>
-		{#snippet trigger()}
-			<Video size="2rem" />
-		{/snippet}
-
-		{#snippet content()}
-			<ul class="list">
-				{#each $sources as source}
-					<li>
-						<button
-							class="btn-sm hover:preset-filled-primary-500 transition-all"
-							class:preset-filled-secondary-500={selectedSource === source}
-							onclick={() => (selectedSource = source)}
-						>
-							{source}
-						</button>
-					</li>
-				{:else}
-					<li>No sources found</li>
-				{/each}
-			</ul>
-		{/snippet}
-	</Popover>
-
 	<div class="h-full" bind:clientWidth={maxSize[0]} bind:clientHeight={maxSize[1]}>
 		<video
 			bind:this={video}
 			autoplay
+			playsinline
 			muted
 			class="absolute"
 			bind:videoWidth={videoSize[0]}
