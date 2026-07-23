@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
 	import Pane from '../Pane.svelte';
-	import type { Core } from '$lib/core/core.svelte';
+	import { sleep, type Core } from '$lib/core/core.svelte';
 	import { RTC } from './rtc';
+	import { RefreshCw } from '@lucide/svelte';
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import { Video } from '@lucide/svelte';
 	import { Topic } from '$lib/comm/topic';
@@ -41,21 +42,33 @@
 		video.style.left = `${(maxSize[0] - video.width) / 2}px`;
 	});
 
-	$effect(() => {
+	function setOnTrack() {
 		rtc.pc.ontrack = (event) => {
 			rtc.pc.getTransceivers()[0].receiver.jitterBufferTarget = 0;
 			video.srcObject = event.streams[0];
 		};
+	}
 
+	onMount(() => {
+		setOnTrack();
 		rtc.connect();
 
 		return () => {
-			rtc.pc.close();
+			rtc.close();
 		}
 	})
+
+	function refresh() {
+		rtc.reset();
+
+		setOnTrack();
+		rtc.connect();
+	}
 </script>
 
 <Pane name="Camera" {start} size={{ x: 2, y: 1 }}>
+	<RefreshCw class="absolute m-5 hover:scale-110 transition z-10" onclick={refresh}/>
+
 	<div class="h-full" bind:clientWidth={maxSize[0]} bind:clientHeight={maxSize[1]}>
 		<video
 			bind:this={video}

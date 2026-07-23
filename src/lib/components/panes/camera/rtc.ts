@@ -1,14 +1,16 @@
 import type { StdMsg } from '$lib/comm/interfaces';
 import { Topic } from '$lib/comm/topic';
 import { Core } from '$lib/core/core.svelte';
+import type { Unsubscriber } from 'svelte/store';
 
 export class RTC {
-	private _pc = new RTCPeerConnection();
+	private _pc: RTCPeerConnection;
 
 	// Signaling from the source to us
 	private _signalSrcTopic: Topic<StdMsg<string>>;
 	// Signaling from us to the source
 	private _signalSinkTopic: Topic<StdMsg<string>>;
+	private _unsub: Unsubscriber;
 
 	public get pc(): RTCPeerConnection {
 		return this._pc;
@@ -18,25 +20,39 @@ export class RTC {
 		this._signalSrcTopic = new Topic(core.ros, "/webrtc/signal_src", "std_msgs/String");
 		this._signalSinkTopic = new Topic(core.ros, "/webrtc/signal_sink", "std_msgs/String");
 
+		this._pc = new RTCPeerConnection();
 		this.setupLogListeners();
-
-		this._signalSrcTopic.subscribe().subscribe((msg) => {
-			if (msg) {
-				this.onMessage(JSON.parse(msg.data));
-			}
-		});
+		this._unsub = this._signalSrcTopic.subscribe().subscribe(this.onMessage);
 	}
 
-	async connect() {
+	connect() {
 		this._signalSinkTopic.publish({ data: "{ \"type\": \"connect\" }" });
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private async onMessage(message: any) {
-		if (message.type == "offer") {
+	close() {
+		this._unsub();
+		this._pc.close();
+	}
+
+	reset() {
+		this.close();
+
+		this._pc = new RTCPeerConnection();
+		this.setupLogListeners();
+		this._unsub = this._signalSrcTopic.subscribe().subscribe(this.onMessage);
+	}
+
+	private async onMessage(message?: StdMsg<string>) {
+		if (message == undefined) {
+			return;
+		}
+
+		const data = JSON.parse(message.data)
+
+		if (data.type == "offer") {
 			console.log("|Camera| Got offer");
 
-			await this._pc.setRemoteDescription(message);
+			await this._pc.setRemoteDescription(data);
 			await this._pc.setLocalDescription();
 			this._signalSinkTopic.publish({ data: JSON.stringify(this._pc.localDescription) });
 		}
