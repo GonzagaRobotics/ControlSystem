@@ -1,0 +1,7 @@
+{
+	roslibUrl: 'localhost:9090',
+	fakeConnect: true,
+	noHeartbeat: true,
+	rtcSignalingUrl: 'localhost:8080',
+	defaultTab: ''
+}

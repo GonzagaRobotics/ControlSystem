@@ -1,26 +1,7 @@
-node_modules
+# ROS 2
+build/
+install/
+log/
 
-# Output
-.output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
-/build
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
-.env
-.env.*
-!.env.example
-!.env.test
-
-# Core config
-config_core.json5
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+# Temp and personal files
+.vscode/
