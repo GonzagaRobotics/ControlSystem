@@ -3,6 +3,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include "control/layout.hpp"
+#include "control/panes/placeholder_pane.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlgpu3.h"
@@ -17,7 +19,7 @@ int main(int argc, char ** argv)
   // Create SDL window graphics context
 
   float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-  SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+  SDL_WindowFlags window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
   SDL_Window * window =
     SDL_CreateWindow("Control System", (int)(1920 * main_scale), (int)(1080 * main_scale), window_flags);
 
@@ -70,6 +72,21 @@ int main(int argc, char ** argv)
 
   rclcpp::init(argc, argv);
 
+  // Panes are declared before the layout, which borrows them.
+  control::PlaceholderPane camera("Camera", {2, 1});
+  control::PlaceholderPane motors("Motors", {1, 1});
+  control::PlaceholderPane gnss("GNSS", {1, 1});
+  control::PlaceholderPane auto_nav("Auto Nav", {2, 1});
+  control::PlaceholderPane arm("Arm", {1, 1});
+  control::PlaceholderPane science("Science", {1, 1});
+
+  control::Layout layout({
+    {"Drive", {{&camera, {0, 0}}, {&motors, {2, 0}}, {&gnss, {3, 0}}}},
+    {"Autonomous", {{&camera, {0, 0}}, {&motors, {2, 0}}, {&gnss, {3, 0}}, {&auto_nav, {0, 1}}}},
+    {"Arm", {{&camera, {0, 0}}, {&arm, {2, 0}}, {&gnss, {3, 0}}}},
+    {"Science", {{&camera, {0, 0}}, {&science, {2, 0}}, {&gnss, {3, 0}}}},
+  });
+
   // Our state
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -95,6 +112,8 @@ int main(int argc, char ** argv)
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+
+    layout.draw();
 
     // Rendering
     ImGui::Render();

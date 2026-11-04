@@ -38,7 +38,8 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3-static)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_executable(control WIN32 src/main.cpp)
+add_executable(control WIN32 src/main.cpp src/layout.cpp)
+target_include_directories(control PRIVATE include)
 target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp)
 
 # Scoped to our target so vendored code keeps its own warning settings.
