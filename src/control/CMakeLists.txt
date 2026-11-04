@@ -36,9 +36,10 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3-static)
 
 # Control app
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
 
 add_executable(control WIN32 src/main.cpp)
-target_link_libraries(control PRIVATE SDL3::SDL3-static imgui)
+target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp)
 
 # Scoped to our target so vendored code keeps its own warning settings.
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
