@@ -16,6 +16,7 @@ public:
 
   const char * name() const override { return name_.c_str(); }
   GridSpan span() const override { return span_; }
+  void update(const Comm &, const Gamepad &, const std::string &) override {}
   void draw() override {}
 
 private:

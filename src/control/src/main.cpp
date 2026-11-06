@@ -1,8 +1,7 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>  // printf, fprintf
 
-#include <rclcpp/rclcpp.hpp>
-
+#include "control/comm.hpp"
 #include "control/gamepad.hpp"
 #include "control/layout.hpp"
 #include "control/panes/drive_pane.hpp"
@@ -74,13 +73,13 @@ int main(int argc, char ** argv)
   init_info.PresentMode = SDL_GPU_PRESENTMODE_VSYNC;
   ImGui_ImplSDLGPU3_Init(&init_info);
 
-  rclcpp::init(argc, argv);
+  control::Comm comm(argc, argv, "control");
 
   control::Gamepad gamepad;
 
   // Panes are declared before the layout, which borrows them.
   control::PlaceholderPane camera("Camera", {2, 1});
-  control::DrivePane drive("Drive", {1, 1});
+  control::DrivePane drive("Drive", {1, 1}, comm);
   control::PlaceholderPane gnss("GNSS", {1, 1});
   control::PlaceholderPane auto_nav("Auto Nav", {2, 1});
   control::PlaceholderPane arm("Arm", {1, 1});
@@ -111,6 +110,7 @@ int main(int argc, char ** argv)
       gamepad.process_event(event);
     }
     gamepad.update();
+    layout.update(comm, gamepad);
 
     if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
       SDL_Delay(10);
@@ -162,8 +162,6 @@ int main(int argc, char ** argv)
   }
 
   // Cleanup
-  rclcpp::shutdown();
-
   SDL_WaitForGPUIdle(gpu_device);
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();

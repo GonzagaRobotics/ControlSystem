@@ -37,10 +37,12 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3-static)
 # Control app
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-add_executable(control WIN32 src/main.cpp src/layout.cpp src/gamepad.cpp src/panes/drive_pane.cpp)
+add_executable(control WIN32 src/main.cpp src/comm.cpp src/layout.cpp src/gamepad.cpp src/panes/drive_pane.cpp)
 target_include_directories(control PRIVATE include)
-target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp)
+target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp ${sensor_msgs_TARGETS} ${geometry_msgs_TARGETS})
 
 # Scoped to our target so vendored code keeps its own warning settings.
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

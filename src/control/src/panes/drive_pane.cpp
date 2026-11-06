@@ -4,7 +4,44 @@
 
 namespace control
 {
-DrivePane::DrivePane(std::string name, GridSpan span) : name_(std::move(name)), span_(span) {}
+DrivePane::DrivePane(std::string name, GridSpan span, const Comm & comm) : name_(std::move(name)), span_(span)
+{
+  // TODO: QoS
+  cmd_vel_pub_ = comm.publisher<geometry_msgs::msg::Twist>("/cmd_vel");
+}
 
-void DrivePane::draw() { ImGui::Text("Foobar"); }
+void DrivePane::update(const Comm & comm, const Gamepad & gamepad, const std::string & current_tab)
+{
+  controlled_ = current_tab == "Drive";
+
+  if (!controlled_) {
+    return;
+  }
+
+  // Limit publishing rate to 10 Hz
+  const double now = comm.node().now().seconds();
+  if (now - last_pub_time_ < 0.1) {
+    return;
+  }
+  last_pub_time_ = now;
+
+  forward_input_ = gamepad.axis(SDL_GAMEPAD_AXIS_LEFTY);
+  turn_input_ = gamepad.axis(SDL_GAMEPAD_AXIS_LEFTX);
+
+  geometry_msgs::msg::Twist cmd_vel;
+  cmd_vel.linear.x = forward_input_;
+  cmd_vel.angular.z = turn_input_;
+  cmd_vel_pub_->publish(cmd_vel);
+}
+
+void DrivePane::draw()
+{
+  if (!controlled_) {
+    ImGui::Text("Not user-controlled");
+    return;
+  }
+
+  ImGui::Text("Forward/backward: %.2f", forward_input_);
+  ImGui::Text("Turn: %.2f", turn_input_);
+}
 }  // namespace control

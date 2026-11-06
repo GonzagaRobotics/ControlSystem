@@ -27,6 +27,15 @@ void draw_pane_header(const char * name)
 
 Layout::Layout(std::vector<Tab> tabs) : tabs_(std::move(tabs)) {}
 
+void Layout::update(const Comm & comm, const Gamepad & gamepad)
+{
+  if (selected_ < tabs_.size()) {
+    for (const PanePlacement & placement : tabs_[selected_].panes) {
+      placement.pane->update(comm, gamepad, tabs_[selected_].name);
+    }
+  }
+}
+
 void Layout::draw()
 {
   const ImGuiViewport * viewport = ImGui::GetMainViewport();

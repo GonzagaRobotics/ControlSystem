@@ -36,6 +36,9 @@ public:
   // All placed panes must outlive the layout.
   explicit Layout(std::vector<Tab> tabs);
 
+  // Updates the state of all active panes, and the state of the layout itself (e.g. tab selection). Call once per frame before draw().
+  void update(const Comm & comm, const Gamepad & gamepad);
+
   // Fills the main viewport. Call once per frame between ImGui::NewFrame() and ImGui::Render().
   void draw();
 
