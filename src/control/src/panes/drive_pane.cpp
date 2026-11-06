@@ -18,15 +18,24 @@ void DrivePane::update(const Comm & comm, const Gamepad & gamepad, const std::st
     return;
   }
 
+  // Testing with our 8bitdo controllers showed they needed to be reversed.
+  forward_input_ = -gamepad.axis(SDL_GAMEPAD_AXIS_LEFTY);
+  turn_input_ = -gamepad.axis(SDL_GAMEPAD_AXIS_LEFTX);
+
+  // Simple deadzone
+  if (std::abs(forward_input_) < 0.1) {
+    forward_input_ = 0.0;
+  }
+  if (std::abs(turn_input_) < 0.1) {
+    turn_input_ = 0.0;
+  }
+
   // Limit publishing rate to 10 Hz
   const double now = comm.node().now().seconds();
   if (now - last_pub_time_ < 0.1) {
     return;
   }
   last_pub_time_ = now;
-
-  forward_input_ = gamepad.axis(SDL_GAMEPAD_AXIS_LEFTY);
-  turn_input_ = gamepad.axis(SDL_GAMEPAD_AXIS_LEFTX);
 
   geometry_msgs::msg::Twist cmd_vel;
   cmd_vel.linear.x = forward_input_;
