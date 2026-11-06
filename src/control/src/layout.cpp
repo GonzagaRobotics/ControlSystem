@@ -13,9 +13,8 @@ namespace
 constexpr int GRID_COLS = 4;
 constexpr int GRID_ROWS = 2;
 
-constexpr ImGuiWindowFlags ROOT_FLAGS =
-  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-  ImGuiWindowFlags_NoBringToFrontOnFocus;
+constexpr ImGuiWindowFlags ROOT_FLAGS = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                                        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 void draw_pane_header(const char * name)
 {
@@ -48,7 +47,6 @@ void Layout::draw()
 void Layout::draw_appbar()
 {
   ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted("Control System");
   ImGui::SameLine();
 
   // Tab widths are decided inside ImGui, so center using the width measured on the previous frame.
@@ -80,8 +78,7 @@ void Layout::draw_grid(const Tab & tab) const
   const ImVec2 origin = ImGui::GetCursorPos();
   const ImVec2 avail = ImGui::GetContentRegionAvail();
   const ImVec2 gap = ImGui::GetStyle().ItemSpacing;
-  const ImVec2 cell(
-    (avail.x - gap.x * (GRID_COLS - 1)) / GRID_COLS, (avail.y - gap.y * (GRID_ROWS - 1)) / GRID_ROWS);
+  const ImVec2 cell((avail.x - gap.x * (GRID_COLS - 1)) / GRID_COLS, (avail.y - gap.y * (GRID_ROWS - 1)) / GRID_ROWS);
 
   for (const PanePlacement & placement : tab.panes) {
     const GridSpan span = placement.pane->span();

@@ -3,7 +3,9 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include "control/gamepad.hpp"
 #include "control/layout.hpp"
+#include "control/panes/drive_pane.hpp"
 #include "control/panes/placeholder_pane.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
@@ -11,6 +13,8 @@
 
 int main(int argc, char ** argv)
 {
+  SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
     printf("Error: SDL_Init(): %s\n", SDL_GetError());
     return 1;
@@ -72,25 +76,25 @@ int main(int argc, char ** argv)
 
   rclcpp::init(argc, argv);
 
+  control::Gamepad gamepad;
+
   // Panes are declared before the layout, which borrows them.
   control::PlaceholderPane camera("Camera", {2, 1});
-  control::PlaceholderPane motors("Motors", {1, 1});
+  control::DrivePane drive("Drive", {1, 1});
   control::PlaceholderPane gnss("GNSS", {1, 1});
   control::PlaceholderPane auto_nav("Auto Nav", {2, 1});
   control::PlaceholderPane arm("Arm", {1, 1});
   control::PlaceholderPane science("Science", {1, 1});
 
   control::Layout layout({
-    {"Drive", {{&camera, {0, 0}}, {&motors, {2, 0}}, {&gnss, {3, 0}}}},
-    {"Autonomous", {{&camera, {0, 0}}, {&motors, {2, 0}}, {&gnss, {3, 0}}, {&auto_nav, {0, 1}}}},
+    {"Drive", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}}},
+    {"Autonomous", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}, {&auto_nav, {0, 1}}}},
     {"Arm", {{&camera, {0, 0}}, {&arm, {2, 0}}, {&gnss, {3, 0}}}},
     {"Science", {{&camera, {0, 0}}, {&science, {2, 0}}, {&gnss, {3, 0}}}},
   });
 
-  // Our state
-  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
   // Main loop
+
   bool running = true;
   while (running) {
     SDL_Event event;
@@ -100,9 +104,13 @@ int main(int argc, char ** argv)
       if (event.type == SDL_EVENT_QUIT) {
         running = false;
       }
-      if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+      if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
         running = false;
+      }
+
+      gamepad.process_event(event);
     }
+    gamepad.update();
 
     if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
       SDL_Delay(10);
@@ -135,7 +143,7 @@ int main(int argc, char ** argv)
       // Setup and start a render pass
       SDL_GPUColorTargetInfo target_info = {};
       target_info.texture = swapchain_texture;
-      target_info.clear_color = SDL_FColor{clear_color.x, clear_color.y, clear_color.z, clear_color.w};
+      target_info.clear_color = SDL_FColor{0.45f, 0.55f, 0.60f, 1.00f};
       target_info.load_op = SDL_GPU_LOADOP_CLEAR;
       target_info.store_op = SDL_GPU_STOREOP_STORE;
       target_info.mip_level = 0;
