@@ -40,7 +40,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(control WIN32 src/main.cpp src/comm.cpp src/layout.cpp src/gamepad.cpp src/panes/drive_pane.cpp)
+add_executable(control WIN32 src/main.cpp src/comm.cpp src/layout.cpp src/gamepad.cpp src/panes/drive_pane.cpp src/panes/camera_pane.cpp)
 target_include_directories(control PRIVATE include)
 target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp ${sensor_msgs_TARGETS} ${geometry_msgs_TARGETS})
 

@@ -4,6 +4,7 @@
 #include "control/comm.hpp"
 #include "control/gamepad.hpp"
 #include "control/layout.hpp"
+#include "control/panes/camera_pane.hpp"
 #include "control/panes/drive_pane.hpp"
 #include "control/panes/placeholder_pane.hpp"
 #include "imgui.h"
@@ -73,92 +74,95 @@ int main(int argc, char ** argv)
   init_info.PresentMode = SDL_GPU_PRESENTMODE_VSYNC;
   ImGui_ImplSDLGPU3_Init(&init_info);
 
-  control::Comm comm(argc, argv, "control");
+  // Scoped so everything holding SDL or GPU resources is released before the cleanup below.
+  {
+    control::Comm comm(argc, argv, "control");
 
-  control::Gamepad gamepad;
+    control::Gamepad gamepad;
 
-  // Panes are declared before the layout, which borrows them.
-  control::PlaceholderPane camera("Camera", {2, 1});
-  control::DrivePane drive("Drive", {1, 1}, comm);
-  control::PlaceholderPane gnss("GNSS", {1, 1});
-  control::PlaceholderPane auto_nav("Auto Nav", {2, 1});
-  control::PlaceholderPane arm("Arm", {1, 1});
-  control::PlaceholderPane science("Science", {1, 1});
+    // Panes are declared before the layout, which borrows them.
+    control::CameraPane camera("Camera", {2, 1}, comm, gpu_device);
+    control::DrivePane drive("Drive", {1, 1}, comm);
+    control::PlaceholderPane gnss("GNSS", {1, 1});
+    control::PlaceholderPane auto_nav("Auto Nav", {2, 1});
+    control::PlaceholderPane arm("Arm", {1, 1});
+    control::PlaceholderPane science("Science", {1, 1});
 
-  control::Layout layout({
-    {"Drive", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}}},
-    {"Autonomous", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}, {&auto_nav, {0, 1}}}},
-    {"Arm", {{&camera, {0, 0}}, {&arm, {2, 0}}, {&gnss, {3, 0}}}},
-    {"Science", {{&camera, {0, 0}}, {&science, {2, 0}}, {&gnss, {3, 0}}}},
-  });
+    control::Layout layout({
+      {"Drive", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}}},
+      {"Autonomous", {{&camera, {0, 0}}, {&drive, {2, 0}}, {&gnss, {3, 0}}, {&auto_nav, {0, 1}}}},
+      {"Arm", {{&camera, {0, 0}}, {&arm, {2, 0}}, {&gnss, {3, 0}}}},
+      {"Science", {{&camera, {0, 0}}, {&science, {2, 0}}, {&gnss, {3, 0}}}},
+    });
 
-  // Main loop
+    // Main loop
 
-  bool running = true;
-  while (running) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL3_ProcessEvent(&event);
+    bool running = true;
+    while (running) {
+      SDL_Event event;
+      while (SDL_PollEvent(&event)) {
+        ImGui_ImplSDL3_ProcessEvent(&event);
 
-      if (event.type == SDL_EVENT_QUIT) {
-        running = false;
+        if (event.type == SDL_EVENT_QUIT) {
+          running = false;
+        }
+        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
+          running = false;
+        }
+
+        gamepad.process_event(event);
       }
-      if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
-        running = false;
+      gamepad.update();
+      layout.update(comm, gamepad);
+
+      if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
+        SDL_Delay(10);
+        continue;
       }
 
-      gamepad.process_event(event);
+      ImGui_ImplSDLGPU3_NewFrame();
+      ImGui_ImplSDL3_NewFrame();
+      ImGui::NewFrame();
+
+      layout.draw();
+
+      // Rendering
+      ImGui::Render();
+      ImDrawData * draw_data = ImGui::GetDrawData();
+      const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+
+      SDL_GPUCommandBuffer * command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);  // Acquire a GPU command buffer
+
+      SDL_GPUTexture * swapchain_texture;
+      SDL_WaitAndAcquireGPUSwapchainTexture(
+        command_buffer, window, &swapchain_texture, nullptr,
+        nullptr);  // Acquire a swapchain texture
+
+      if (swapchain_texture != nullptr && !is_minimized) {
+        // This is mandatory: call ImGui_ImplSDLGPU3_PrepareDrawData() to upload
+        // the vertex/index buffer!
+        ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, command_buffer);
+
+        // Setup and start a render pass
+        SDL_GPUColorTargetInfo target_info = {};
+        target_info.texture = swapchain_texture;
+        target_info.clear_color = SDL_FColor{0.45f, 0.55f, 0.60f, 1.00f};
+        target_info.load_op = SDL_GPU_LOADOP_CLEAR;
+        target_info.store_op = SDL_GPU_STOREOP_STORE;
+        target_info.mip_level = 0;
+        target_info.layer_or_depth_plane = 0;
+        target_info.cycle = false;
+        SDL_GPURenderPass * render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
+
+        // Render ImGui
+        ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
+
+        SDL_EndGPURenderPass(render_pass);
+      }
+
+      // Submit the command buffer
+      SDL_SubmitGPUCommandBuffer(command_buffer);
     }
-    gamepad.update();
-    layout.update(comm, gamepad);
-
-    if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
-      SDL_Delay(10);
-      continue;
-    }
-
-    ImGui_ImplSDLGPU3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    layout.draw();
-
-    // Rendering
-    ImGui::Render();
-    ImDrawData * draw_data = ImGui::GetDrawData();
-    const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-
-    SDL_GPUCommandBuffer * command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);  // Acquire a GPU command buffer
-
-    SDL_GPUTexture * swapchain_texture;
-    SDL_WaitAndAcquireGPUSwapchainTexture(
-      command_buffer, window, &swapchain_texture, nullptr,
-      nullptr);  // Acquire a swapchain texture
-
-    if (swapchain_texture != nullptr && !is_minimized) {
-      // This is mandatory: call ImGui_ImplSDLGPU3_PrepareDrawData() to upload
-      // the vertex/index buffer!
-      ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, command_buffer);
-
-      // Setup and start a render pass
-      SDL_GPUColorTargetInfo target_info = {};
-      target_info.texture = swapchain_texture;
-      target_info.clear_color = SDL_FColor{0.45f, 0.55f, 0.60f, 1.00f};
-      target_info.load_op = SDL_GPU_LOADOP_CLEAR;
-      target_info.store_op = SDL_GPU_STOREOP_STORE;
-      target_info.mip_level = 0;
-      target_info.layer_or_depth_plane = 0;
-      target_info.cycle = false;
-      SDL_GPURenderPass * render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
-
-      // Render ImGui
-      ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
-
-      SDL_EndGPURenderPass(render_pass);
-    }
-
-    // Submit the command buffer
-    SDL_SubmitGPUCommandBuffer(command_buffer);
   }
 
   // Cleanup
