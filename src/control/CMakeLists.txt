@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.16)
 project(control)
 include(FetchContent)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
+# FFmpeg decodes the camera stream, libyuv converts it for display.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libav REQUIRED IMPORTED_TARGET libavcodec libavutil)
+find_path(LIBYUV_INCLUDE_DIR libyuv.h REQUIRED)
+find_library(LIBYUV_LIBRARY yuv REQUIRED)
 
 # SDL3
 FetchContent_Declare(
@@ -34,22 +40,31 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC SDL3::SDL3-static)
 
+# uvgRTP
+FetchContent_Declare(
+  uvgRTP
+  GIT_REPOSITORY  https://github.com/ultravideo/uvgRTP
+  GIT_TAG v4.0.2
+)
+
+# Statically linked into control, so nothing needs installing. Its install rules also misplace uvgrtp.pc at / when PKG_CONFIG_PATH is set in the environment.
+set(UVGRTP_DISABLE_INSTALL ON)
+
+FetchContent_MakeAvailable(uvgrtp)
+
 # Control app
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(control WIN32 src/main.cpp src/comm.cpp src/layout.cpp src/gamepad.cpp src/panes/drive_pane.cpp src/panes/camera_pane.cpp)
-target_include_directories(control PRIVATE include)
-target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp ${sensor_msgs_TARGETS} ${geometry_msgs_TARGETS})
+add_executable(control WIN32 src/main.cpp src/comm.cpp src/layout.cpp src/gamepad.cpp src/video_receiver.cpp src/panes/drive_pane.cpp src/panes/camera_pane.cpp)
+target_include_directories(control PRIVATE include ${LIBYUV_INCLUDE_DIR})
+target_link_libraries(control PRIVATE SDL3::SDL3-static imgui rclcpp::rclcpp ${geometry_msgs_TARGETS} PkgConfig::libav ${LIBYUV_LIBRARY} uvgrtp)
 
 # Scoped to our target so vendored code keeps its own warning settings.
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options(control PRIVATE -Wall -Wextra -Wpedantic)
 endif()
-
-install(TARGETS control DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -62,5 +77,6 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+install(TARGETS control DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

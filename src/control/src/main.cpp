@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
     control::Gamepad gamepad;
 
     // Panes are declared before the layout, which borrows them.
-    control::CameraPane camera("Camera", {2, 1}, comm, gpu_device);
+    control::CameraPane camera("Camera", {2, 1}, 8890, gpu_device);
     control::DrivePane drive("Drive", {1, 1}, comm);
     control::PlaceholderPane gnss("GNSS", {1, 1});
     control::PlaceholderPane auto_nav("Auto Nav", {2, 1});

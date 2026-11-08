@@ -9,17 +9,11 @@ namespace
 {
 
 // Guards bitset lookups, which throw on out of range indices such as SDL_GAMEPAD_BUTTON_INVALID.
-bool is_valid(SDL_GamepadButton button)
-{
-  return button >= 0 && button < SDL_GAMEPAD_BUTTON_COUNT;
-}
+bool is_valid(SDL_GamepadButton button) { return button >= 0 && button < SDL_GAMEPAD_BUTTON_COUNT; }
 
 }  // namespace
 
-Gamepad::Gamepad()
-{
-  open_first();
-}
+Gamepad::Gamepad() { open_first(); }
 
 void Gamepad::process_event(const SDL_Event & event)
 {
@@ -65,25 +59,13 @@ void Gamepad::update()
   pending_released_.reset();
 }
 
-bool Gamepad::connected() const
-{
-  return gamepad_ != nullptr;
-}
+bool Gamepad::connected() const { return gamepad_ != nullptr; }
 
-bool Gamepad::pressed(SDL_GamepadButton button) const
-{
-  return is_valid(button) && down_.test(button);
-}
+bool Gamepad::pressed(SDL_GamepadButton button) const { return is_valid(button) && down_.test(button); }
 
-bool Gamepad::just_pressed(SDL_GamepadButton button) const
-{
-  return is_valid(button) && just_pressed_.test(button);
-}
+bool Gamepad::just_pressed(SDL_GamepadButton button) const { return is_valid(button) && just_pressed_.test(button); }
 
-bool Gamepad::just_released(SDL_GamepadButton button) const
-{
-  return is_valid(button) && just_released_.test(button);
-}
+bool Gamepad::just_released(SDL_GamepadButton button) const { return is_valid(button) && just_released_.test(button); }
 
 float Gamepad::axis(SDL_GamepadAxis axis) const
 {
@@ -97,10 +79,7 @@ float Gamepad::axis(SDL_GamepadAxis axis) const
   return std::max(-1.0f, raw / SDL_JOYSTICK_AXIS_MAX);
 }
 
-void Gamepad::open(SDL_JoystickID id)
-{
-  gamepad_.reset(SDL_OpenGamepad(id));
-}
+void Gamepad::open(SDL_JoystickID id) { gamepad_.reset(SDL_OpenGamepad(id)); }
 
 void Gamepad::open_first()
 {
@@ -121,9 +100,6 @@ void Gamepad::close()
   gamepad_.reset();
 }
 
-bool Gamepad::is_bound(SDL_JoystickID id) const
-{
-  return gamepad_ && SDL_GetGamepadID(gamepad_.get()) == id;
-}
+bool Gamepad::is_bound(SDL_JoystickID id) const { return gamepad_ && SDL_GetGamepadID(gamepad_.get()) == id; }
 
 }  // namespace control

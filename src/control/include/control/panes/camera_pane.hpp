@@ -7,17 +7,17 @@
 #include <string>
 
 #include "control/pane.hpp"
-#include "sensor_msgs/msg/image.hpp"
+#include "control/video_receiver.hpp"
 
 namespace control
 {
 
-// Displays the newest frame of one camera feed, scaled to fit and centered in the pane.
+// Displays the newest frame of one RTP/H.264 camera stream, scaled to fit and centered in the pane.
 class CameraPane : public Pane
 {
 public:
   // The device must outlive the pane.
-  CameraPane(std::string name, GridSpan span, const Comm & comm, SDL_GPUDevice * device);
+  CameraPane(std::string name, GridSpan span, std::uint16_t port, SDL_GPUDevice * device);
 
   const char * name() const override { return name_.c_str(); }
   GridSpan span() const override { return span_; }
@@ -33,8 +33,8 @@ private:
     void operator()(SDL_GPUTransferBuffer * buffer) const { SDL_ReleaseGPUTransferBuffer(device, buffer); }
   };
 
-  // Converts the frame to RGBA and uploads it to the texture. On failure, sets error_ instead.
-  void upload(const sensor_msgs::msg::Image & image);
+  // Converts the picture to RGBA and uploads it to the texture. On failure, sets error_ instead.
+  void upload(const AVFrame & picture);
 
   // Recreates the texture and transfer buffer for a new frame size.
   bool resize(std::uint32_t width, std::uint32_t height);
@@ -43,7 +43,8 @@ private:
   const GridSpan span_;
   SDL_GPUDevice * const device_;
 
-  Subscriber<sensor_msgs::msg::Image> image_sub_;
+  // Null if the stream couldn't be opened.
+  std::unique_ptr<VideoReceiver> receiver_;
 
   std::unique_ptr<SDL_GPUTexture, GpuRelease> texture_;
   std::unique_ptr<SDL_GPUTransferBuffer, GpuRelease> transfer_;
